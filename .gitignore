@@ -1,0 +1,9 @@
+map
+node_modules
+public/blockstates
+public/js/lib/three.js-master
+public/models/block
+public/models
+public/textures
+.DS_Store
+npm-debug.log
