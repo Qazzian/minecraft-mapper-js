@@ -7,3 +7,4 @@ public/models
 public/textures
 .DS_Store
 npm-debug.log
+public/js/lib/fabric.js-1.7.4
