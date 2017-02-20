@@ -5,9 +5,9 @@ import * as THREE from "three";
 import LayeredTexture from "LayeredTexture";
 
 "use strict"; 
-		// X is left - right
+		// X is left - right, west - east
 		// Y is up - down
-		// Z is depth
+		// Z is forward and back, north & south
 		
 
 console.log('THREE.REVISION: ', THREE.REVISION);
@@ -29,17 +29,21 @@ var mapData = new Array(new Array(new Array()));
 var socket = io('http://localhost:3000');
 socket.on('connect', function(){});
 socket.on('blockData', function(data){
-	console.log('blockData:', data);
 	addBlockData(data);
 });
 socket.on('disconnect', function(){});
 
-socket.emit('blockRequest', {x: 0, z:0}, function(blockData){
-	console.log('blockRequest: ', blockData);
-})
+function requestBlocks(x, z) {
+	socket.emit('blockRequest', {x: x, z:z}, function(blockData){
+		// console.log('blockRequest: ', blockData);
+	});
+}
 
-function addAxisLines() {
+function addAxisLines(pos) {
 	var axisHelper = new THREE.AxisHelper( 10 );
+	axisHelper.translateX(pos[0]);
+	axisHelper.translateY(pos[1]);
+	axisHelper.translateZ(pos[2]);
 	scene.add( axisHelper );
 }
 
@@ -69,15 +73,24 @@ function loadTextureListAsync(commonPath, fileNames) {
 	}
 
 	fileNames.forEach(function(fileName){
-		requests.push(loadTextureAsync(fileName));
+		requests.push(loadTextureAsync(fileName + '.png'));
 	});
 
 	function resetPath(textures){
 		textureLoader.setPath(oldPath);
 	}
 
-	var allLoadedPromise = Promise.all(requests);
-	allLoadedPromise.then(resetPath, resetPath);
+	var allLoadedPromise = Promise.all(requests).then(function(textureList){
+		var textureMap = {}
+
+		fileNames.forEach(function(fileName, index){
+			textureMap[fileName] = textureList[index];
+		});
+
+		resetPath();
+		return textureMap;
+	});
+	allLoadedPromise.then(resetPath, );
 	return allLoadedPromise;
 
 }
@@ -92,13 +105,10 @@ function getBlockVariant(block, variantdata) {
 	}
 }
 
-
-
 var modelDataCache = {};
 
 function loadModelData(modelName) {
 	return new Promise(function(resolve, reject) {
-		console.log('get model data for ', modelName);
 
 		if (modelDataCache.hasOwnProperty(modelName)) {
 			resolve(modelDataCache[modelName]);
@@ -121,33 +131,122 @@ function loadModelData(modelName) {
 	});
 }
 
-function parseModelData(modelData) {
+function getFaceData(modelData) {
 	if (!modelData.textures || !modelData.elements) {
 		console.error("missing modelData. Expecting textures and elements: ", modelData);
 	}
 
-	// TODO build MeshBasicMaterial from the texture data
+	var faces = {};
+
+	modelData.elements.forEach(function(element){
+		Object.keys(element.faces).forEach(function(faceName){
+			if (!faces.hasOwnProperty(faceName)) {
+				faces[faceName] = [];
+			}
+			var face = element.faces[faceName]
+			var textureName = face.texture.replace(/^#/, '');
+			face.texturePath = modelData.textures[textureName]
+			faces[faceName].push(face);
+
+		});
+	});
+
+	return faces;
+}
+
+function getTexturesForBlock(faceData) {
+	var textures = {};
+
+	Object.keys(faceData).forEach(function(faceName) {
+		faceData[faceName].forEach(function(faceObj){
+			textures[faceObj.texturePath] = true;
+		});
+	});
+
+	return Object.keys(textures);
+}
+
+var tintedTextures = {};
+function generateTintedTexture(textureName, texture, biomeColour) {
+	var textureKey = textureName + '_' + biomeColour;
+
+	if (! tintedTextures.hasOwnProperty(textureKey)) {
+		tintedTextures[textureKey] = applyColorTransform(texture, biomeColour);
+	}
+	return tintedTextures[textureKey];
+}
+
+function generateBlockMaterials(faceData, textureMap, biomeData) {
+
+	function renderFace(face) {
+		var baseColor;
+
+		if (face.length === 1) {
+			baseColor = face[0].hasOwnProperty('tintindex') ? biomeData.color : 0xffffff;
+			return {color: baseColor, map: textureMap[face[0].texturePath]}
+		}
+		else if (face.length > 1) {
+			var faceLayerList = [];
+			face.forEach(function(faceLayer){
+				var texture;
+				if (faceLayer.hasOwnProperty('tintindex')) {
+					texture = generateTintedTexture(faceLayer.texturePath, textureMap[faceLayer.texturePath], biomeData.color);
+				}
+				else {
+					texture = textureMap[faceLayer.texturePath];
+				}
+				faceLayerList.push(texture);
+			});
+			return {color: 0xffffff, map: new LayeredTexture(faceLayerList)};
+		}
+	}
+
+	var materials = [
+	// if the block.element.face has a "tintindex": 0 then use the biome colour instead of white
+	    new THREE.MeshBasicMaterial( renderFace(faceData.east) ), // right, east
+	    new THREE.MeshBasicMaterial( renderFace(faceData.west) ), // left, west
+	    new THREE.MeshBasicMaterial( renderFace(faceData.up) ), // top
+	    new THREE.MeshBasicMaterial( renderFace(faceData.down) ), // bottom
+	    new THREE.MeshBasicMaterial( renderFace(faceData.south) ), // back, south
+	    new THREE.MeshBasicMaterial( renderFace(faceData.north) )  // front, north
+	];
+
+	return new THREE.MultiMaterial( materials);
 }
 
 function addBlockData(blockData) {
 	var block = blockData.block;
+	var biome = block.biome;
 	var pos = blockData.position;
+	var blockModel,
+		blockFaces,
+		blockTextures;
 
 	loadblockStates(block.name).then(function(stateData) {
-		console.log('blockstates response: ', stateData);
 		if (stateData.variants) {
 			var modelName = getBlockVariant(block, stateData.variants);
-			loadModelData('block/' + modelName).then(function(modelDataResponse){
-				console.log('modelDataResponse: ', modelDataResponse);
-			})
+			return loadModelData('block/' + modelName);
 		}
-	})
+		else {
+			console.error('UNSUPPORTED: variant data missing.', stateData)
+		}
+	}).then(function(modelDataResponse){
+		blockModel = modelDataResponse;
+		blockFaces = getFaceData(modelDataResponse);
+		var texturePathsList = getTexturesForBlock(blockFaces);
+		return loadTextureListAsync('textures/', texturePathsList);
+	}).then(function(textureList){
+		console.log(blockData, blockModel, blockFaces, textureList);
+		blockTextures = textureList;
 
+		var geometry = new THREE.BoxGeometry( 1,1,1 );
+		geometry.translate(pos[0], pos[1], pos[2] );
+		var materials = generateBlockMaterials(blockFaces, textureList, biome);
+		var cube = new THREE.Mesh(geometry, materials);
 
-	// TODO get model data, use this to get texture data for the various sides
-	// todo need to create the block and add it to the scene.
-	// can also add it to model data but I think the scene should be enough.
-
+		scene.add(cube);
+		render();
+	});
 }
 
 function applyColorTransform(texture, biomeColour) {
@@ -199,65 +298,41 @@ function applyColorTransform(texture, biomeColour) {
 
 function generateCubesAsync() {
 	return new Promise(function(resolve, reject){
-		loadTextureListAsync('textures/blocks/', ['coarse_dirt.png', 'grass_top.png', 'grass_side.png', 'grass_side_overlay.png']).then(function(textures) {
-			var x=0, y=0, z = 0;
+		var x=0, y=0, z = 0;
 
-			// TODO make the overlay green
-
-			var biomeSpecificGrassSideOverlayTexture = applyColorTransform(textures[3], 9286496)
-			var grassSideTexture = new LayeredTexture([textures[2], biomeSpecificGrassSideOverlayTexture]);
-
-			document.body.appendChild(grassSideTexture.image);
-
-			for (x=-5; x<5; x++) {
-				for (z=-3; z<3; z++) {
-			var geometry = new THREE.BoxGeometry( 1,1,1 );
-			geometry.translate(x, y, z);
-			var materials = [
-			// if the block.element.face has a "tintindex": 0 then use the biome colour instead of white
-			    new THREE.MeshBasicMaterial( { color: 0xffffff, map: grassSideTexture } ), // right
-			    new THREE.MeshBasicMaterial( { color: 0xffffff, map: textures[0] } ), // left
-			    new THREE.MeshBasicMaterial( { color: 9286496, map: textures[1] } ), // top
-			    new THREE.MeshBasicMaterial( { color: 0xffffff, map: textures[0] } ), // bottom
-			    new THREE.MeshBasicMaterial( { color: 0xffffff, map: grassSideTexture } ), // back
-			    new THREE.MeshBasicMaterial( { color: 0xffffff, map: textures[0] } )  // front
-			    // new THREE.MeshBasicMaterial( { color: 0xff0000 } ), // right
-			    // new THREE.MeshBasicMaterial( { color: 0x0000ff } ), // left
-			    // new THREE.MeshBasicMaterial( { color: 0x00ff00 } ), // top
-			    // new THREE.MeshBasicMaterial( { color: 0xffff00 } ), // bottom
-			    // new THREE.MeshBasicMaterial( { color: 0x00ffff } ), // back
-			    // new THREE.MeshBasicMaterial( { color: 0xff00ff } )  // front
-			];
-
-			var material = new THREE.MultiMaterial( materials);
-
-			var cube = new THREE.Mesh(geometry, material);
-			scene.add(cube);
-			resolve();
-				}
+		for (x=20; x<40; x++) {
+			for (z=-20; z<20; z++) {
+				requestBlocks(x, z);
 			}
-		});
+		}
+		resolve();
+
 	});
 }
 
-addAxisLines();
+
 
 var cameraAngle = 0;
 
+function positionCamera(targetPos) {
+	camera.position.x = Math.cos(cameraAngle)*10;
+	camera.position.z = Math.sin(cameraAngle)*10;
+	camera.position.y = targetPos[1] + 5;
+	camera.lookAt(new THREE.Vector3( targetPos[0], targetPos[1], targetPos[2] ));
+	addAxisLines(targetPos);
+}
+
 generateCubesAsync().then(function(){
-	camera.position.x = Math.cos(cameraAngle)*10;
-	camera.position.z = Math.sin(cameraAngle)*10;
-	camera.position.y = 5;
-	camera.lookAt(new THREE.Vector3( 0, 0, 0 ))
-	render()
+		positionCamera([30, 62, 0]);
 });
+
 var render = function () {
-	requestAnimationFrame( render );
-	cameraAngle += 0.05;
-	camera.position.x = Math.cos(cameraAngle)*10;
-	camera.position.z = Math.sin(cameraAngle)*10;
+	// requestAnimationFrame( render );
+	// cameraAngle += 0.05;
+	// camera.position.x = Math.cos(cameraAngle)*10;
+	// camera.position.z = Math.sin(cameraAngle)*10;
 	
-	camera.lookAt(new THREE.Vector3( 0, 0, 0 ))
+	// camera.lookAt(new THREE.Vector3( 0, 0, 0 ))
 
 	renderer.render(scene, camera);
 };

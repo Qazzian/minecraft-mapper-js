@@ -27,12 +27,13 @@ var io = WebSocket(server);
 io.on('connection', function(client){
 	console.log('Socket.IO connection established');
 	client.on('blockRequest', function(data){
-		console.log('blockRequest: ', data);
+		// console.log('blockRequest: ', data);
 		if (data.hasOwnProperty('x') && data.hasOwnProperty('y') && data.hasOwnProperty('z')) {
 			// TODO
 		}
 		else if (data.hasOwnProperty('x') && data.hasOwnProperty('z')) {
 			var block = getHighestBlock(data.x, 255, data.z).then(function(blockData) {
+				console.log('emit block at: ', blockData.position);
 				client.emit('blockData', blockData);
 			});
 		}
@@ -60,7 +61,7 @@ function getHighestBlock(xPos, nextYPos, zPos) {
 		throw new Error('No blocks found at x:', xPos, ', z:', zPos);
 	}
 
-	return world.getBlock(new Vec3(0,nextYPos,0))
+	return world.getBlock(new Vec3(xPos,nextYPos,zPos))
 		.then(function(blockData){
 			if (blockData.type === 0) {
 				return getHighestBlock(xPos, nextYPos -1, zPos);
