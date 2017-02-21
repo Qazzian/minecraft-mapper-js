@@ -291,6 +291,10 @@ function addBlockData(blockData) {
 		blockFaces,
 		blockTextures;
 
+	if (block.type === 8 || block.type === 9) {
+		return addWaterBlock(blockData);
+	}
+
 	loadblockStates(block).then(function(stateData) {
 		if (stateData.variants) {
 			var modelName = getBlockVariant(block, stateData.variants);
@@ -318,6 +322,24 @@ function addBlockData(blockData) {
 		scene.add(cube);
 	});
 }
+
+function addWaterBlock(blockData) {
+	var pos = blockData.position;
+
+	return loadTextureAsync('textures/blocks/water_still.png').then(function(waterTexture){
+		var waterMaterial = new THREE.MeshBasicMaterial( {
+			color: 0xffffff, 
+			map: waterTexture,
+			opacity: 0.8,
+			transparent: true
+		} );
+		var geometry = new THREE.BoxGeometry( 1,1,1 );
+		geometry.translate(pos[0], pos[1], pos[2] );
+		var cube = new THREE.Mesh(geometry, waterMaterial);
+		scene.add(cube);
+	});
+}
+
 
 function generateCubesAsync() {
 	var dist = 10;
