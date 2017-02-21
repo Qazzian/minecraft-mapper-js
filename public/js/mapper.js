@@ -39,6 +39,11 @@ function requestBlocks(x, z) {
 	});
 }
 
+
+function isArray(arg) {
+    return Object.prototype.toString.call(arg) === '[object Array]';
+}
+
 function addAxisLines(pos) {
 	var axisHelper = new THREE.AxisHelper( 10 );
 	axisHelper.translateX(pos[0]);
@@ -47,9 +52,97 @@ function addAxisLines(pos) {
 	scene.add( axisHelper );
 }
 
-function loadblockStates(blockName) {
-	var path = '/blockstates/' + blockName + '.json';
-	return $.getJSON(path);
+
+}
+
+var blockStateCache = {};
+function loadblockStates(block) {
+	var blockStateKey = block.type;
+	var stateName = block.displayName.toLowerCase().replace(/\s/, '_');
+
+	var path = '/blockstates/' + stateName + '.json';
+	if (!blockStateCache[blockStateKey]) {
+		blockStateCache[blockStateKey] = $.getJSON(path).catch(function(){
+			var otherPath = '/blockstates/' + block.name + '.json';
+			return $.getJSON(otherPath)
+		});
+	}
+
+	return blockStateCache[blockStateKey];
+}
+
+function getBlockVariant(block, variantdata) {
+	if (variantdata.normal) {
+		return isArray(variantdata.normal) ? variantdata.normal[0].model : variantdata.normal.model;
+	}
+	if (block.name === 'grass' && variantdata['snowy=false']) {
+		return variantdata['snowy=false'][0].model;
+	}
+
+	console.log('TODO: Handle new variant: ', block, variantdata);
+	throw 'Unsupported variant: ' + block.name
+}
+
+var modelDataCache = {};
+
+function loadModelData(modelName) {
+	// TODO change this to cache the promise function, ATM we are making multiple requests to the same file.
+
+	if (modelDataCache.hasOwnProperty(modelName)) {
+		return modelDataCache[modelName];
+	}
+
+	var request = $.getJSON('/models/' + modelName + '.json').then(function(modelData) {
+		if (modelData.parent) {
+			return loadModelData(modelData.parent).then(function(parentModel){
+				var combinedModelData = $.extend({}, parentModel, modelData);
+				// modelDataCache[modelName] = combinedModelData;
+				return combinedModelData;
+			});
+		}
+		else {
+			// modelDataCache[modelName] = modelData;
+			return modelData;
+		}
+	});
+	modelDataCache[modelName] = request;
+
+	return request;
+}
+
+function getFaceData(modelData) {
+	if (!modelData.textures || !modelData.elements) {
+		console.error("missing modelData. Expecting textures and elements: ", modelData);
+	}
+
+	var faces = {};
+
+	modelData.elements.forEach(function(element){
+		Object.keys(element.faces).forEach(function(faceName){
+			if (!faces.hasOwnProperty(faceName)) {
+				faces[faceName] = [];
+			}
+			var face = element.faces[faceName]
+			var textureName = face.texture.replace(/^#/, '');
+			face.texturePath = modelData.textures[textureName]
+			faces[faceName].push(face);
+
+		});
+	});
+
+	return faces;
+}
+
+function getTexturesForBlock(faceData) {
+	var textures = {};
+
+	Object.keys(faceData).forEach(function(faceName) {
+		faceData[faceName].forEach(function(faceObj){
+			textures[faceObj.texturePath] = true;
+		});
+	});
+
+	return Object.keys(textures);
 }
 
 function loadTextureAsync(filePath) {
@@ -95,77 +188,6 @@ function loadTextureListAsync(commonPath, fileNames) {
 
 }
 
-function getBlockVariant(block, variantdata) {
-	if (block.name === 'grass' && variantdata['snowy=false']) {
-		return variantdata['snowy=false'][0].model;
-	}
-	else {
-		console.log('TODO: Handle new variant: ', block, variantdata);
-		throw 'Unsupported variant: ' + block.name
-	}
-}
-
-var modelDataCache = {};
-
-function loadModelData(modelName) {
-	return new Promise(function(resolve, reject) {
-
-		if (modelDataCache.hasOwnProperty(modelName)) {
-			resolve(modelDataCache[modelName]);
-			return;
-		}
-
-		$.getJSON('/models/' + modelName + '.json').then(function(modelData) {
-			if (modelData.parent) {
-				loadModelData(modelData.parent).then(function(parentModel){
-					var combinedModelData = $.extend({}, parentModel, modelData);
-					modelDataCache[modelName] = combinedModelData;
-					resolve(combinedModelData)
-				});
-			}
-			else {
-				modelDataCache[modelName] = modelData;
-				resolve(modelData);
-			}
-		});
-	});
-}
-
-function getFaceData(modelData) {
-	if (!modelData.textures || !modelData.elements) {
-		console.error("missing modelData. Expecting textures and elements: ", modelData);
-	}
-
-	var faces = {};
-
-	modelData.elements.forEach(function(element){
-		Object.keys(element.faces).forEach(function(faceName){
-			if (!faces.hasOwnProperty(faceName)) {
-				faces[faceName] = [];
-			}
-			var face = element.faces[faceName]
-			var textureName = face.texture.replace(/^#/, '');
-			face.texturePath = modelData.textures[textureName]
-			faces[faceName].push(face);
-
-		});
-	});
-
-	return faces;
-}
-
-function getTexturesForBlock(faceData) {
-	var textures = {};
-
-	Object.keys(faceData).forEach(function(faceName) {
-		faceData[faceName].forEach(function(faceObj){
-			textures[faceObj.texturePath] = true;
-		});
-	});
-
-	return Object.keys(textures);
-}
-
 var tintedTextures = {};
 function generateTintedTexture(textureName, texture, biomeColour) {
 	var textureKey = textureName + '_' + biomeColour;
@@ -183,7 +205,7 @@ function generateBlockMaterials(faceData, textureMap, biomeData) {
 
 		if (face.length === 1) {
 			baseColor = face[0].hasOwnProperty('tintindex') ? biomeData.color : 0xffffff;
-			return {color: baseColor, map: textureMap[face[0].texturePath]}
+			return {color: baseColor, map: textureMap[face[0].texturePath], alphaTest: 0.5, side: THREE.DoubleSide}
 		}
 		else if (face.length > 1) {
 			var faceLayerList = [];
@@ -197,7 +219,7 @@ function generateBlockMaterials(faceData, textureMap, biomeData) {
 				}
 				faceLayerList.push(texture);
 			});
-			return {color: 0xffffff, map: new LayeredTexture(faceLayerList)};
+			return {color: 0xffffff, map: new LayeredTexture(faceLayerList), alphaTest: 0, side: THREE.DoubleSide};
 		}
 	}
 
@@ -214,40 +236,6 @@ function generateBlockMaterials(faceData, textureMap, biomeData) {
 	return new THREE.MultiMaterial( materials);
 }
 
-function addBlockData(blockData) {
-	var block = blockData.block;
-	var biome = block.biome;
-	var pos = blockData.position;
-	var blockModel,
-		blockFaces,
-		blockTextures;
-
-	loadblockStates(block.name).then(function(stateData) {
-		if (stateData.variants) {
-			var modelName = getBlockVariant(block, stateData.variants);
-			return loadModelData('block/' + modelName);
-		}
-		else {
-			console.error('UNSUPPORTED: variant data missing.', stateData)
-		}
-	}).then(function(modelDataResponse){
-		blockModel = modelDataResponse;
-		blockFaces = getFaceData(modelDataResponse);
-		var texturePathsList = getTexturesForBlock(blockFaces);
-		return loadTextureListAsync('textures/', texturePathsList);
-	}).then(function(textureList){
-		console.log(blockData, blockModel, blockFaces, textureList);
-		blockTextures = textureList;
-
-		var geometry = new THREE.BoxGeometry( 1,1,1 );
-		geometry.translate(pos[0], pos[1], pos[2] );
-		var materials = generateBlockMaterials(blockFaces, textureList, biome);
-		var cube = new THREE.Mesh(geometry, materials);
-
-		scene.add(cube);
-		render();
-	});
-}
 
 function applyColorTransform(texture, biomeColour) {
 	var color = new THREE.Color(biomeColour);
@@ -295,18 +283,58 @@ function applyColorTransform(texture, biomeColour) {
 	return new THREE.CanvasTexture(newCanvas);
 }
 
+function addBlockData(blockData) {
+	var block = blockData.block;
+	var biome = block.biome;
+	var pos = blockData.position;
+	var blockModel,
+		blockFaces,
+		blockTextures;
+
+	loadblockStates(block).then(function(stateData) {
+		if (stateData.variants) {
+			var modelName = getBlockVariant(block, stateData.variants);
+			return loadModelData('block/' + modelName);
+		}
+		else {
+			console.error('UNSUPPORTED: variant data missing.', stateData)
+		}
+	}, function(blockStateError){
+		console.error('Cant find state for block', blockData);
+	}).then(function(modelDataResponse){
+		blockModel = modelDataResponse;
+		blockFaces = getFaceData(modelDataResponse);
+		var texturePathsList = getTexturesForBlock(blockFaces);
+		return loadTextureListAsync('textures/', texturePathsList);
+	}).then(function(textureList){
+		console.log(blockData, blockModel, blockFaces, textureList);
+		blockTextures = textureList;
+
+		var geometry = new THREE.BoxGeometry( 1,1,1 );
+		geometry.translate(pos[0], pos[1], pos[2] );
+		var materials = generateBlockMaterials(blockFaces, textureList, biome);
+		var cube = new THREE.Mesh(geometry, materials);
+
+		scene.add(cube);
+	});
+}
 
 function generateCubesAsync() {
+	var dist = 10;
+
 	return new Promise(function(resolve, reject){
 		var x=0, y=0, z = 0;
 
-		for (x=20; x<40; x++) {
-			for (z=-20; z<20; z++) {
+		for (x=-15; x<=-5; x++) {
+			for (z=-15; z<=-5; z++) {
 				requestBlocks(x, z);
 			}
 		}
-		resolve();
+		positionCamera([10, 72, 10], [0, 62, 0]);
 
+		// requestBlocks(-7, -11);
+		// positionCamera([10, 72, 10], [-7, 62, -11]);
+		resolve();
 	});
 }
 
@@ -323,7 +351,7 @@ function positionCamera(targetPos) {
 }
 
 generateCubesAsync().then(function(){
-		positionCamera([30, 62, 0]);
+		render();
 });
 
 var render = function () {
