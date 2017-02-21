@@ -2,6 +2,8 @@ import $ from "jquery";
 import io from "socket.io";
 import * as THREE from "three";
 
+import { OrbitControls } from "OrbitControls";
+
 import LayeredTexture from "LayeredTexture";
 
 "use strict"; 
@@ -14,6 +16,7 @@ console.log('THREE.REVISION: ', THREE.REVISION);
 THREE.Cache.enabled = true;
 
 
+var clock = new THREE.Clock();
 var scene = new THREE.Scene();
 var camera = new THREE.PerspectiveCamera( 75, window.innerWidth/window.innerHeight, 0.5, 1000 );
 
@@ -50,9 +53,6 @@ function addAxisLines(pos) {
 	axisHelper.translateY(pos[1]);
 	axisHelper.translateZ(pos[2]);
 	scene.add( axisHelper );
-}
-
-
 }
 
 var blockStateCache = {};
@@ -339,14 +339,28 @@ function generateCubesAsync() {
 }
 
 
+var cameraControls = new OrbitControls( camera, renderer.domElement );
+cameraControls.userPanSpeed = 1.0
+
+function updateCameraPosition()
+{
+	var delta = clock.getDelta(); // seconds.
+	var moveDistance = 200 * delta; // 200 pixels per second
+	var rotateAngle = Math.PI / 2 * delta;   // pi/2 radians (90 degrees) per second
+	
+	cameraControls.update();
+}
+
+
 
 var cameraAngle = 0;
 
-function positionCamera(targetPos) {
-	camera.position.x = Math.cos(cameraAngle)*10;
-	camera.position.z = Math.sin(cameraAngle)*10;
-	camera.position.y = targetPos[1] + 5;
-	camera.lookAt(new THREE.Vector3( targetPos[0], targetPos[1], targetPos[2] ));
+function positionCamera(cameraPos, targetPos) {
+	cameraControls.cameraObject.position.x = cameraPos[0];
+	cameraControls.cameraObject.position.y = cameraPos[1];
+	cameraControls.cameraObject.position.z = cameraPos[2];
+	cameraControls.center = new THREE.Vector3( targetPos[0], targetPos[1], targetPos[2] );
+	cameraControls.update();
 	addAxisLines(targetPos);
 }
 
@@ -355,12 +369,8 @@ generateCubesAsync().then(function(){
 });
 
 var render = function () {
-	// requestAnimationFrame( render );
-	// cameraAngle += 0.05;
-	// camera.position.x = Math.cos(cameraAngle)*10;
-	// camera.position.z = Math.sin(cameraAngle)*10;
-	
-	// camera.lookAt(new THREE.Vector3( 0, 0, 0 ))
+	requestAnimationFrame( render );
 
+	updateCameraPosition();
 	renderer.render(scene, camera);
 };
