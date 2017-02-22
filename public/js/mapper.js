@@ -4,7 +4,10 @@ import * as THREE from "three";
 
 import { OrbitControls } from "OrbitControls";
 
+import { Textures } from "Textures";
 import LayeredTexture from "LayeredTexture";
+
+
 
 "use strict"; 
 		// X is left - right, west - east
@@ -24,7 +27,7 @@ var renderer = new THREE.WebGLRenderer();
 renderer.setSize( window.innerWidth, window.innerHeight );
 document.body.appendChild( renderer.domElement );
 
-var textureLoader = new THREE.TextureLoader();
+
 
 var mapData = new Array(new Array(new Array()));
 
@@ -72,6 +75,7 @@ function loadblockStates(block) {
 }
 
 function getBlockVariant(block, variantdata) {
+	if (block.metaData)
 	if (variantdata.normal) {
 		return isArray(variantdata.normal) ? variantdata.normal[0].model : variantdata.normal.model;
 	}
@@ -133,70 +137,6 @@ function getFaceData(modelData) {
 	return faces;
 }
 
-function getTexturesForBlock(faceData) {
-	var textures = {};
-
-	Object.keys(faceData).forEach(function(faceName) {
-		faceData[faceName].forEach(function(faceObj){
-			textures[faceObj.texturePath] = true;
-		});
-	});
-
-	return Object.keys(textures);
-}
-
-function loadTextureAsync(filePath) {
-	return new Promise(function(resolve, reject) {
-		textureLoader.load(filePath, function(texture){
-			resolve(texture)
-		})
-	})
-}
-
-function loadTextureListAsync(commonPath, fileNames) {
-	var requests = [];
-	var oldPath = textureLoader.path;
-
-	if (!fileNames) {
-		fileNames = commonPath;
-		commonPath = null;
-	}
-	if (commonPath) {
-		textureLoader.setPath(commonPath);
-	}
-
-	fileNames.forEach(function(fileName){
-		requests.push(loadTextureAsync(fileName + '.png'));
-	});
-
-	function resetPath(textures){
-		textureLoader.setPath(oldPath);
-	}
-
-	var allLoadedPromise = Promise.all(requests).then(function(textureList){
-		var textureMap = {}
-
-		fileNames.forEach(function(fileName, index){
-			textureMap[fileName] = textureList[index];
-		});
-
-		resetPath();
-		return textureMap;
-	});
-	allLoadedPromise.then(resetPath, );
-	return allLoadedPromise;
-
-}
-
-var tintedTextures = {};
-function generateTintedTexture(textureName, texture, biomeColour) {
-	var textureKey = textureName + '_' + biomeColour;
-
-	if (! tintedTextures.hasOwnProperty(textureKey)) {
-		tintedTextures[textureKey] = applyColorTransform(texture, biomeColour);
-	}
-	return tintedTextures[textureKey];
-}
 
 function generateBlockMaterials(faceData, textureMap, biomeData) {
 
@@ -212,7 +152,7 @@ function generateBlockMaterials(faceData, textureMap, biomeData) {
 			face.forEach(function(faceLayer){
 				var texture;
 				if (faceLayer.hasOwnProperty('tintindex')) {
-					texture = generateTintedTexture(faceLayer.texturePath, textureMap[faceLayer.texturePath], biomeData.color);
+					texture = Textures.generateTintedTexture(faceLayer.texturePath, textureMap[faceLayer.texturePath], biomeData.color);
 				}
 				else {
 					texture = textureMap[faceLayer.texturePath];
@@ -236,51 +176,6 @@ function generateBlockMaterials(faceData, textureMap, biomeData) {
 	return new THREE.MultiMaterial( materials);
 }
 
-
-function applyColorTransform(texture, biomeColour) {
-	var color = new THREE.Color(biomeColour);
-	var canvasEl, ctx, 
-		newCanvas, newContext;
-
-	if (!texture.image) { return; }
-
-	if (typeof texture.image.getContext === 'function') {
-		canvasEl = texture.image;
-		ctx = canvasEl.getContext('2d');
-		newCanvas = document.createElement('canvas');
-		newCanvas.width = canvasEl.width;
-		newCanvas.height = canvasEl.height;
-		newContext = newCanvas.getContext('2d');
-	}
-	else {
-		newCanvas = document.createElement('canvas');
-		newCanvas.width = texture.image.width;
-		newCanvas.height = texture.image.height;
-		ctx = newCanvas.getContext('2d');
-		ctx.drawImage(texture.image, 0, 0);
-		newContext = ctx;
-	}
-
-	var i,
-		img = ctx.getImageData(0, 0, 16, 16), // Pull a rectangle of image data from context
-		data = img.data, 
-		len = data.length,
-		newImage = newContext.getImageData(0,0,16,16),
-		newData = newImage.data;
-
-	// Loop through image data array.
-	// Apply color trasform to each block of RGBA values.
-	// Applied as: c = c * cmodifier + coffset.
-	for (i = 0; i < len; i += 4) {
-		newData[i] = data[i] * color.r;
-		newData[i+1] = data[i + 1] * color.g;
-		newData[i+2] = data[i + 2] * color.b;
-		newData[i+3] = data[i + 3]
-	}
-
-	newContext.putImageData(newImage, 0, 0);
-
-	return new THREE.CanvasTexture(newCanvas);
 }
 
 function addBlockData(blockData) {
@@ -308,10 +203,10 @@ function addBlockData(blockData) {
 	}).then(function(modelDataResponse){
 		blockModel = modelDataResponse;
 		blockFaces = getFaceData(modelDataResponse);
-		var texturePathsList = getTexturesForBlock(blockFaces);
-		return loadTextureListAsync('textures/', texturePathsList);
+		var texturePathsList = Textures.getTexturesForBlock(blockFaces);
+		return Textures.loadTextureListAsync('textures/', texturePathsList);
 	}).then(function(textureList){
-		console.log(blockData, blockModel, blockFaces, textureList);
+		// console.log(blockData.block.name, blockData, blockModel, blockFaces, textureList);
 		blockTextures = textureList;
 
 		var geometry = new THREE.BoxGeometry( 1,1,1 );
@@ -326,7 +221,7 @@ function addBlockData(blockData) {
 function addWaterBlock(blockData) {
 	var pos = blockData.position;
 
-	return loadTextureAsync('textures/blocks/water_still.png').then(function(waterTexture){
+	return Textures.loadTextureAsync('textures/blocks/water_still.png').then(function(waterTexture){
 		var waterMaterial = new THREE.MeshBasicMaterial( {
 			color: 0xffffff, 
 			map: waterTexture,
@@ -354,8 +249,10 @@ function generateCubesAsync() {
 		}
 		positionCamera([10, 72, 10], [0, 62, 0]);
 
+		// For testing a single block
 		// requestBlocks(-7, -11);
 		// positionCamera([10, 72, 10], [-7, 62, -11]);
+
 		resolve();
 	});
 }
