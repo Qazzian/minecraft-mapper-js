@@ -2,6 +2,7 @@ import * as THREE from "three";
 import LayeredTexture from "LayeredTexture";
 
 var textureLoader = new THREE.TextureLoader();
+var textureFileCache = {};
 
 var tintedTextures = {};
 
@@ -74,11 +75,14 @@ var Textures = {
 	},
 
 	loadTextureAsync: function(filePath) {
-		return new Promise(function(resolve, reject) {
-			textureLoader.load(filePath, function(texture){
-				resolve(texture)
+		if (!textureFileCache[filePath]) {
+			textureFileCache[filePath] = new Promise(function(resolve, reject) {
+				textureLoader.load(filePath, function(texture){
+					resolve(texture)
+				});
 			});
-		});
+		}
+		return textureFileCache[filePath];
 	},
 
 	loadTextureListAsync: function(commonPath, fileNames) {
@@ -87,19 +91,13 @@ var Textures = {
 
 		if (!fileNames) {
 			fileNames = commonPath;
-			commonPath = null;
-		}
-		if (commonPath) {
-			textureLoader.setPath(commonPath);
+			commonPath = '';
 		}
 
 		fileNames.forEach(function(fileName){
-			requests.push(Textures.loadTextureAsync(fileName + '.png'));
+			requests.push(Textures.loadTextureAsync(commonPath + fileName + '.png'));
 		});
 
-		function resetPath(textures){
-			textureLoader.setPath(oldPath);
-		}
 
 		var allLoadedPromise = Promise.all(requests).then(function(textureList){
 			var textureMap = {}
@@ -108,15 +106,12 @@ var Textures = {
 				textureMap[fileName] = textureList[index];
 			});
 
-			resetPath();
 			return textureMap;
 		});
 
-		allLoadedPromise.then(resetPath);
-
 		return allLoadedPromise;
-	},
-}
+	}
+};
 
 export { Textures };
 
