@@ -133,7 +133,7 @@ function getFaceData(modelData) {
 			}
 			var face = element.faces[faceName]
 			var textureName = face.texture.replace(/^#/, '');
-			face.texturePath = modelData.textures[textureName]
+			face.texturePath = modelData.textures[textureName] || modelData.textures['all'];
 			faces[faceName].push(face);
 
 		});
