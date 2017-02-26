@@ -6,6 +6,7 @@ import { OrbitControls } from "OrbitControls";
 
 import { Textures } from "Textures";
 import LayeredTexture from "LayeredTexture";
+import { BlockStateMap } from "BlockStateMap";
 
 
 
@@ -59,9 +60,8 @@ function addAxisLines(pos) {
 }
 
 var blockStateCache = {};
-function loadblockStates(block) {
-	var blockStateKey = block.type;
-	var stateName = block.displayName.toLowerCase().replace(/\s/, '_');
+function loadblockStates(stateName) {
+	var blockStateKey = stateName;
 
 	var path = '/blockstates/' + stateName + '.json';
 	if (!blockStateCache[blockStateKey]) {
@@ -75,7 +75,9 @@ function loadblockStates(block) {
 }
 
 function getBlockVariant(block, variantdata) {
-	if (block.metaData)
+	if (block.metadata) {
+		// TODO
+	}
 	if (variantdata.normal) {
 		return isArray(variantdata.normal) ? variantdata.normal[0].model : variantdata.normal.model;
 	}
@@ -182,24 +184,39 @@ function addBlockData(blockData) {
 	var block = blockData.block;
 	var biome = block.biome;
 	var pos = blockData.position;
-	var blockModel,
+	var stateName,
+		variantIndex,
+		blockModel,
 		blockFaces,
 		blockTextures;
+
 
 	if (block.type === 8 || block.type === 9) {
 		return addWaterBlock(blockData);
 	}
+	else if (typeof BlockStateMap[block.type] === 'function') {
+		var stateData = BlockStateMap[block.type](block);
+	}
+	else {
+		stateData = BlockStateMap.byDisplayName(block);
+	}
 
-	loadblockStates(block).then(function(stateData) {
+	stateName = stateData.stateName;
+	variantIndex = stateData.variantName;
+
+	loadblockStates(stateName).then(function(stateData) {
 		if (stateData.variants) {
-			var modelName = getBlockVariant(block, stateData.variants);
-			return loadModelData('block/' + modelName);
+			var variant = stateData.variants[variantIndex];
+			if (isArray(variant)) {
+				variant = variant[0];
+			}
+			return loadModelData('block/' + variant.model);
 		}
 		else {
 			console.error('UNSUPPORTED: variant data missing.', stateData)
 		}
 	}, function(blockStateError){
-		console.error('Cant find state for block', blockData);
+		console.error('Cant find state for block', block.name, blockData);
 	}).then(function(modelDataResponse){
 		blockModel = modelDataResponse;
 		blockFaces = getFaceData(modelDataResponse);
