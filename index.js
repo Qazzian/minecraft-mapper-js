@@ -26,6 +26,7 @@ const server = http.createServer(app);
 var io = WebSocket(server);
 io.on('connection', function(client){
 	console.log('Socket.IO connection established');
+
 	client.on('blockRequest', function(data){
 		// console.log('blockRequest: ', data);
 		if (data.hasOwnProperty('x') && data.hasOwnProperty('y') && data.hasOwnProperty('z')) {
@@ -33,8 +34,16 @@ io.on('connection', function(client){
 		}
 		else if (data.hasOwnProperty('x') && data.hasOwnProperty('z')) {
 			var block = getHighestBlock(data.x, 255, data.z).then(function(blockData) {
-				console.log('emit block at: ', blockData.position);
+				if (blockData.block.meta) {
+					console.log('BLOCK META: ', blockData.block.name, blockData.block.meta)
+				}
+
 				client.emit('blockData', blockData);
+				nextPos = [blockData.position[0], blockData.position[1]-1, blockData.position[2]];
+				getBlocksYDeep(nextPos, 5).then(function(blockList){
+					console.log('Block Y Deep: ', blockList.length);
+					client.emit('blockList', blockList);
+				});
 			});
 		}
 		else {
@@ -67,6 +76,25 @@ function getHighestBlock(xPos, nextYPos, zPos) {
 				return getHighestBlock(xPos, nextYPos -1, zPos);
 			}
 			else return {block: blockData, position: [xPos, nextYPos, zPos]};
+	});
+}
+
+function getBlocksYDeep(pos, depth) {
+	var y,
+		// endY = Math.max(pos[1] - depth, 0),
+		blockRequests = [];
+
+	for (y = pos[1]; blockRequests.length<=depth; y--) {
+		// TODO skip air blocks
+		blockRequests.push(getBlock(pos[0], y, pos[2]));
+	}
+
+	return Promise.all(blockRequests);
+}
+
+function getBlock(x, y, z) {
+	return world.getBlock(new Vec3(x,y,z)).then(function(blockData){
+		return {block: blockData, position: [x, y, z]};
 	});
 }
 

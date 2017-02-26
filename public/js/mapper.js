@@ -38,6 +38,9 @@ socket.on('connect', function(){});
 socket.on('blockData', function(data){
 	addBlockData(data);
 });
+socket.on('blockList', function(data){
+	addBlockList(data);
+});
 socket.on('disconnect', function(){});
 
 function requestBlocks(x, z) {
@@ -180,6 +183,15 @@ function generateBlockMaterials(faceData, textureMap, biomeData) {
 	return new THREE.MultiMaterial( materials);
 }
 
+function addBlockList(blocks) {
+	// console.log('BLOCK LIST:', blocks);
+	blocks.forEach(function(blockData){
+		if (blockData.block.type !== 0) {
+			setTimeout(function(){
+				addBlockData(blockData);
+			}, 0);
+		}
+	});
 }
 
 function addBlockData(blockData) {
