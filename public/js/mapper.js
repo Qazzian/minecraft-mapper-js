@@ -140,39 +140,41 @@ function getFaceData(modelData) {
 }
 
 
+function renderFace(face, textureMap, biomeData) {
+	var baseColor;
+
+	if (face.length === 1) {
+		baseColor = face[0].hasOwnProperty('tintindex') ? biomeData.color : 0xffffff;
+		return {color: baseColor, map: textureMap[face[0].texturePath], alphaTest: 0.5, side: THREE.DoubleSide}
+	}
+	else if (face.length > 1) {
+		var faceLayerList = [];
+		face.forEach(function(faceLayer){
+			var texture;
+			if (faceLayer.hasOwnProperty('tintindex')) {
+				texture = Textures.generateTintedTexture(faceLayer.texturePath, textureMap[faceLayer.texturePath], biomeData.color);
+			}
+			else {
+				texture = textureMap[faceLayer.texturePath];
+			}
+			faceLayerList.push(texture);
+		});
+		return {color: 0xffffff, map: new LayeredTexture(faceLayerList), alphaTest: 0, side: THREE.DoubleSide};
+	}
+}
+
 function generateBlockMaterials(faceData, textureMap, biomeData) {
 
-	function renderFace(face) {
-		var baseColor;
 
-		if (face.length === 1) {
-			baseColor = face[0].hasOwnProperty('tintindex') ? biomeData.color : 0xffffff;
-			return {color: baseColor, map: textureMap[face[0].texturePath], alphaTest: 0.5, side: THREE.DoubleSide}
-		}
-		else if (face.length > 1) {
-			var faceLayerList = [];
-			face.forEach(function(faceLayer){
-				var texture;
-				if (faceLayer.hasOwnProperty('tintindex')) {
-					texture = Textures.generateTintedTexture(faceLayer.texturePath, textureMap[faceLayer.texturePath], biomeData.color);
-				}
-				else {
-					texture = textureMap[faceLayer.texturePath];
-				}
-				faceLayerList.push(texture);
-			});
-			return {color: 0xffffff, map: new LayeredTexture(faceLayerList), alphaTest: 0, side: THREE.DoubleSide};
-		}
-	}
 
 	var materials = [
 	// if the block.element.face has a "tintindex": 0 then use the biome colour instead of white
-	    new THREE.MeshBasicMaterial( renderFace(faceData.east) ), // right, east
-	    new THREE.MeshBasicMaterial( renderFace(faceData.west) ), // left, west
-	    new THREE.MeshBasicMaterial( renderFace(faceData.up) ), // top
-	    new THREE.MeshBasicMaterial( renderFace(faceData.down) ), // bottom
-	    new THREE.MeshBasicMaterial( renderFace(faceData.south) ), // back, south
-	    new THREE.MeshBasicMaterial( renderFace(faceData.north) )  // front, north
+	    new THREE.MeshBasicMaterial( renderFace(faceData.east, textureMap, biomeData) ), // right, east
+	    new THREE.MeshBasicMaterial( renderFace(faceData.west, textureMap, biomeData) ), // left, west
+	    new THREE.MeshBasicMaterial( renderFace(faceData.up, textureMap, biomeData) ), // top
+	    new THREE.MeshBasicMaterial( renderFace(faceData.down, textureMap, biomeData) ), // bottom
+	    new THREE.MeshBasicMaterial( renderFace(faceData.south, textureMap, biomeData) ), // back, south
+	    new THREE.MeshBasicMaterial( renderFace(faceData.north, textureMap, biomeData) )  // front, north
 	];
 
 	return new THREE.MultiMaterial( materials);
@@ -225,13 +227,34 @@ function addBlockData(blockData) {
 	}).then(function(textureList){
 		// console.log(blockData.block.name, blockData, blockModel, blockFaces, textureList);
 		blockTextures = textureList;
+		if (blockFaces.up && blockFaces.down) {
+			var geometry = new THREE.BoxGeometry( 1,1,1 );
+			geometry.translate(pos[0], pos[1], pos[2] );
+			var materials = generateBlockMaterials(blockFaces, textureList, biome);
+			var renderedBlock = new THREE.Mesh(geometry, materials);
+			scene.add(renderedBlock);
+		}
+		else {
+			// It's probably a cross shape
+			var ewGeom = new THREE.PlaneGeometry(1, 1);
+			ewGeom.translate(pos[0], pos[1], pos[2] );
+			var ewMaterials = new THREE.MultiMaterial([
+				new THREE.MeshBasicMaterial( renderFace(blockFaces.east, textureList, biome) ), // right, east
+				new THREE.MeshBasicMaterial( renderFace(blockFaces.west, textureList, biome) ), // left, west
+			]);
+			var ewMesh = new THREE.Mesh(ewGeom, ewMaterials);
 
-		var geometry = new THREE.BoxGeometry( 1,1,1 );
-		geometry.translate(pos[0], pos[1], pos[2] );
-		var materials = generateBlockMaterials(blockFaces, textureList, biome);
-		var cube = new THREE.Mesh(geometry, materials);
+			var nsGeom = new THREE.PlaneGeometry(1, 1);
+			nsGeom.rotateY(1.5708);
+			nsGeom.translate(pos[0], pos[1], pos[2] );
+			var nsMaterials = new THREE.MultiMaterial([
+				new THREE.MeshBasicMaterial( renderFace(blockFaces.south, textureList, biome) ), // back, south
+				new THREE.MeshBasicMaterial( renderFace(blockFaces.north, textureList, biome) )  // front, north
+			]);
+			var nsMesh = new THREE.Mesh(nsGeom, nsMaterials);
+			scene.add(ewMesh, nsMesh);
+		}
 
-		scene.add(cube);
 	});
 }
 
