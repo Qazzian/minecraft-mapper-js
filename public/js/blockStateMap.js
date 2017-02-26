@@ -49,6 +49,13 @@ var BlockStateMap = {
 			directions[directionPart >> 2]
 		);
 	},
+	// leaves
+	18: function (block) {
+		var materialPart = block.metadata & 0b11;
+		var materials = [ 'oak', 'spruce', 'birch', 'jungle'];
+		return new MetaFields(materials[materialPart] + '_leaves');
+	},
+	// red_flower
 	38: function (block) {
 		var types = [
 			'poppy',
@@ -63,6 +70,25 @@ var BlockStateMap = {
 		];
 
 		return new MetaFields(types[block.metadata]);
+	},
+	// reeds
+	83: function (block) {
+		return BlockStateMap.byName(block);
+	},
+	// double_plant
+	175: function (block) {
+		var materialPart = block.metadata & 0b111;
+		var isTop = !!(block.metadata & 0b1000);
+		var types = [
+			'sunflower',
+			'syringa',
+			'double_grass',
+			'double_fern',
+			'double_rose',
+			'paeonia'
+		];
+		var section = isTop ? "half=upper" : "half=lower";
+		return new MetaFields(types[materialPart], section);
 	}
 
 };
