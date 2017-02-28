@@ -75,6 +75,9 @@ var Textures = {
 	},
 
 	loadTextureAsync: function(filePath) {
+		if (!filePath || filePath.match(/(undefined|#all)/)) {
+			debugger;
+		}
 		if (!textureFileCache[filePath]) {
 			textureFileCache[filePath] = new Promise(function(resolve, reject) {
 				textureLoader.load(filePath, function(texture){
@@ -87,7 +90,6 @@ var Textures = {
 
 	loadTextureListAsync: function(commonPath, fileNames) {
 		var requests = [];
-		var oldPath = textureLoader.path;
 
 		if (!fileNames) {
 			fileNames = commonPath;
@@ -100,7 +102,7 @@ var Textures = {
 
 
 		var allLoadedPromise = Promise.all(requests).then(function(textureList){
-			var textureMap = {}
+			var textureMap = {};
 
 			fileNames.forEach(function(fileName, index){
 				textureMap[fileName] = textureList[index];

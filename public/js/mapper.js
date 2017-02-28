@@ -104,7 +104,7 @@ function loadModelData(modelName) {
 	var request = $.getJSON('/models/' + modelName + '.json').then(function(modelData) {
 		if (modelData.parent) {
 			return loadModelData(modelData.parent).then(function(parentModel){
-				var combinedModelData = $.extend({}, parentModel, modelData);
+				var combinedModelData = $.extend(true, {}, parentModel, modelData);
 				// modelDataCache[modelName] = combinedModelData;
 				return combinedModelData;
 			});
@@ -131,9 +131,12 @@ function getFaceData(modelData) {
 			if (!faces.hasOwnProperty(faceName)) {
 				faces[faceName] = [];
 			}
-			var face = element.faces[faceName]
+			var face = element.faces[faceName];
 			var textureName = face.texture.replace(/^#/, '');
 			face.texturePath = modelData.textures[textureName] || modelData.textures['all'];
+			while (face.texturePath.match(/^#/)) {
+				face.texturePath = modelData.textures[face.texturePath.replace(/^#/, '')];
+			}
 			faces[faceName].push(face);
 
 		});
