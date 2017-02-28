@@ -310,8 +310,9 @@ function generateCubesAsync() {
 }
 
 
-var cameraControls = new OrbitControls( camera, renderer.domElement );
-cameraControls.userPanSpeed = 1.0
+var cameraControls = new OrbitControls( camera, renderer.domElement, scene );
+cameraControls.userPanSpeed = 1.0;
+cameraControls.onObjectSelected = onObjectSelected;
 
 function updateCameraPosition()
 {
@@ -322,6 +323,10 @@ function updateCameraPosition()
 	cameraControls.update();
 }
 
+function onObjectSelected(intersected) {
+	intersected.object.material.color.setHex( Math.random() * 0xffffff );
+	debugger;
+}
 
 
 var cameraAngle = 0;

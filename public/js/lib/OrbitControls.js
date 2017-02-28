@@ -8,10 +8,11 @@
 
 import * as THREE from "three";
 
-var OrbitControls = function ( cameraObject, renderElement ) {
+var OrbitControls = function (cameraObject, renderElement, scene) {
 
 	this.cameraObject = cameraObject;
 	this.renderElement = ( renderElement !== undefined ) ? renderElement : document;
+	this.scene = scene;
 
 	// API
 
@@ -36,6 +37,10 @@ var OrbitControls = function ( cameraObject, renderElement ) {
 
 	this.minDistance = 0;
 	this.maxDistance = Infinity;
+
+	this.raycaster = new THREE.Raycaster();
+	this.mouse = new THREE.Vector2();
+	this.hasMouseMoved = false;
 
 	// 65 /*A*/, 83 /*S*/, 68 /*D*/
 	this.keys = {LEFT: 37, UP: 38, RIGHT: 39, BOTTOM: 40, ROTATE: 65, ZOOM: 83, PAN: 68};
@@ -184,6 +189,7 @@ var OrbitControls = function ( cameraObject, renderElement ) {
 		if (scope.enabled === false) return;
 		if (scope.userRotate === false) return;
 
+		this.hasMouseMoved = false;
 		event.preventDefault();
 
 		if (state === STATE.NONE) {
@@ -213,6 +219,7 @@ var OrbitControls = function ( cameraObject, renderElement ) {
 		if (scope.enabled === false) return;
 		event.preventDefault()
 
+		this.hasMouseMoved = true;
 
 		if (state === STATE.ROTATE) {
 			rotateEnd.set(event.clientX, event.clientY);
@@ -245,11 +252,34 @@ var OrbitControls = function ( cameraObject, renderElement ) {
 		if (scope.enabled === false) return;
 		if (scope.userRotate === false) return;
 
+		if (!this.hasMouseMoved) {
+			onMouseClick(event);
+			this.hasMouseMoved = false;
+		}
 
 		document.removeEventListener('mousemove', onMouseMove, false);
 		document.removeEventListener('mouseup', onMouseUp, false);
 
 		state = STATE.NONE;
+	}
+
+	function onMouseClick(event) {
+		if (scope.enabled === false) return;
+		if (scope.userZoom === false) return;
+
+		scope.mouse.x = ( event.clientX / scope.renderElement.clientWidth ) * 2 - 1;
+		scope.mouse.y = - ( event.clientY / scope.renderElement.clientHeight ) * 2 + 1;
+
+		debugger;
+
+		scope.raycaster.setFromCamera( scope.mouse, scope.cameraObject );
+
+		var intersects = scope.raycaster.intersectObjects( scope.scene.children );
+
+		if ( intersects.length > 0 ) {
+			scope.onObjectSelected(intersects[0]);
+		}
+
 	}
 
 	function onMouseWheel(event) {
