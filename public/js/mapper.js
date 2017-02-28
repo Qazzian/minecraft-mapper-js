@@ -28,11 +28,6 @@ var renderer = new THREE.WebGLRenderer();
 renderer.setSize( window.innerWidth, window.innerHeight );
 document.body.appendChild( renderer.domElement );
 
-
-
-var mapData = new Array(new Array(new Array()));
-
-
 var socket = io('http://localhost:3000');
 socket.on('connect', function(){});
 socket.on('blockData', function(data){
@@ -75,21 +70,6 @@ function loadblockStates(stateName) {
 	}
 
 	return blockStateCache[blockStateKey];
-}
-
-function getBlockVariant(block, variantdata) {
-	if (block.metadata) {
-		// TODO
-	}
-	if (variantdata.normal) {
-		return isArray(variantdata.normal) ? variantdata.normal[0].model : variantdata.normal.model;
-	}
-	if (block.name === 'grass' && variantdata['snowy=false']) {
-		return variantdata['snowy=false'][0].model;
-	}
-
-	console.log('TODO: Handle new variant: ', block, variantdata);
-	throw 'Unsupported variant: ' + block.name
 }
 
 var modelDataCache = {};

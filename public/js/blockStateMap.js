@@ -5,7 +5,7 @@
 var MetaFields = function(stateName, variantName) {
 	this.stateName = stateName;
 	this.variantName = variantName || 'normal';
-}
+};
 
 var BlockStateMap = {
 	byName: function(block) {
@@ -15,7 +15,7 @@ var BlockStateMap = {
 		return new MetaFields(block.displayName.toLowerCase().replace(/\s/, '_'));
 	},
 	// air
-	0: function(block){
+	0: function(){
 		return new MetaFields('air');
 	},
 	// stone
