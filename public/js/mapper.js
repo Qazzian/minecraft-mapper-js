@@ -228,6 +228,7 @@ function addBlockData(blockData) {
 			var materials = generateBlockMaterials(blockFaces, textureList, biome);
 			var renderedBlock = new THREE.Mesh(geometry, materials);
 			scene.add(renderedBlock);
+			renderedBlock.data = blockData;
 		}
 		else {
 			// It's probably a cross shape
@@ -235,9 +236,10 @@ function addBlockData(blockData) {
 			ewGeom.translate(pos[0], pos[1], pos[2] );
 			var ewMaterials = new THREE.MultiMaterial([
 				new THREE.MeshBasicMaterial( renderFace(blockFaces.east, textureList, biome) ), // right, east
-				new THREE.MeshBasicMaterial( renderFace(blockFaces.west, textureList, biome) ), // left, west
+				new THREE.MeshBasicMaterial( renderFace(blockFaces.west, textureList, biome) )  // left, west
 			]);
 			var ewMesh = new THREE.Mesh(ewGeom, ewMaterials);
+			ewMesh.data = blockData;
 
 			var nsGeom = new THREE.PlaneGeometry(1, 1);
 			nsGeom.rotateY(1.5708);
@@ -247,6 +249,8 @@ function addBlockData(blockData) {
 				new THREE.MeshBasicMaterial( renderFace(blockFaces.north, textureList, biome) )  // front, north
 			]);
 			var nsMesh = new THREE.Mesh(nsGeom, nsMaterials);
+			nsMesh.data = blockData;
+
 			scene.add(ewMesh, nsMesh);
 		}
 
@@ -267,6 +271,7 @@ function addWaterBlock(blockData) {
 		geometry.translate(pos[0], pos[1], pos[2] );
 		var cube = new THREE.Mesh(geometry, waterMaterial);
 		scene.add(cube);
+		cube.data = blockData;
 	});
 }
 
@@ -307,8 +312,8 @@ function updateCameraPosition()
 }
 
 function onObjectSelected(intersected) {
-	intersected.object.material.color.setHex( Math.random() * 0xffffff );
 	debugger;
+	console.log(intersected.object);
 }
 
 

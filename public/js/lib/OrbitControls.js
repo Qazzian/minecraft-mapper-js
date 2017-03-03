@@ -189,7 +189,7 @@ var OrbitControls = function (cameraObject, renderElement, scene) {
 		if (scope.enabled === false) return;
 		if (scope.userRotate === false) return;
 
-		this.hasMouseMoved = false;
+		scope.hasMouseMoved = false;
 		event.preventDefault();
 
 		if (state === STATE.NONE) {
@@ -219,7 +219,7 @@ var OrbitControls = function (cameraObject, renderElement, scene) {
 		if (scope.enabled === false) return;
 		event.preventDefault()
 
-		this.hasMouseMoved = true;
+		scope.hasMouseMoved = true;
 
 		if (state === STATE.ROTATE) {
 			rotateEnd.set(event.clientX, event.clientY);
@@ -252,13 +252,12 @@ var OrbitControls = function (cameraObject, renderElement, scene) {
 		if (scope.enabled === false) return;
 		if (scope.userRotate === false) return;
 
-		if (!this.hasMouseMoved) {
-			onMouseClick(event);
-			this.hasMouseMoved = false;
-		}
-
 		document.removeEventListener('mousemove', onMouseMove, false);
 		document.removeEventListener('mouseup', onMouseUp, false);
+
+		if (!scope.hasMouseMoved) {
+			onMouseClick(event);
+		}
 
 		state = STATE.NONE;
 	}
@@ -269,8 +268,6 @@ var OrbitControls = function (cameraObject, renderElement, scene) {
 
 		scope.mouse.x = ( event.clientX / scope.renderElement.clientWidth ) * 2 - 1;
 		scope.mouse.y = - ( event.clientY / scope.renderElement.clientHeight ) * 2 + 1;
-
-		debugger;
 
 		scope.raycaster.setFromCamera( scope.mouse, scope.cameraObject );
 
