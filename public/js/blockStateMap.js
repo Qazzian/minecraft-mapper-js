@@ -2,17 +2,19 @@
  * Created by ian-wallis on 26/02/2017.
  */
 
-var MetaFields = function(stateName, variantName) {
-	this.stateName = stateName;
-	this.variantName = variantName || 'normal';
+class MetaFields {
+	constructor (stateName, variantName) {
+		this.stateName = stateName;
+		this.variantName = variantName || 'normal';
+	}
 };
 
 var BlockStateMap = {
-	byName: function(block) {
-		return new MetaFields(block.name);
+	byName: function(block, variantName) {
+		return new MetaFields(block.name, variantName);
 	},
-	byDisplayName: function(block) {
-		return new MetaFields(block.displayName.toLowerCase().replace(/\s/, '_'));
+	byDisplayName: function(block, variantName) {
+		return new MetaFields(block.displayName.toLowerCase().replace(/\s/, '_'), variantName);
 	},
 	// air
 	0: function(){
