@@ -202,7 +202,7 @@ function addBlockData(blockData) {
 	variantIndex = stateData.variantName;
 
 	loadblockStates(stateName).then(function(stateData) {
-		if (stateData.variants) {
+		if (stateData.variants && stateData.variants[variantIndex]) {
 			var variant = stateData.variants[variantIndex];
 			if (isArray(variant)) {
 				variant = variant[0];
@@ -223,39 +223,64 @@ function addBlockData(blockData) {
 		// console.log(blockData.block.name, blockData, blockModel, blockFaces, textureList);
 		blockTextures = textureList;
 		if (blockFaces.up && blockFaces.down) {
-			var geometry = new THREE.BoxGeometry( 1,1,1 );
-			geometry.translate(pos[0], pos[1], pos[2] );
-			var materials = generateBlockMaterials(blockFaces, textureList, biome);
-			var renderedBlock = new THREE.Mesh(geometry, materials);
+			var renderedBlock = buildStandardBlock(blockData, blockModel, blockFaces, textureList, biome);
 			scene.add(renderedBlock);
-			renderedBlock.data = blockData;
 		}
 		else {
 			// It's probably a cross shape
-			var ewGeom = new THREE.PlaneGeometry(1, 1);
-			ewGeom.translate(pos[0], pos[1], pos[2] );
-			var ewMaterials = new THREE.MultiMaterial([
-				new THREE.MeshBasicMaterial( renderFace(blockFaces.east, textureList, biome) ), // right, east
-				new THREE.MeshBasicMaterial( renderFace(blockFaces.west, textureList, biome) )  // left, west
-			]);
-			var ewMesh = new THREE.Mesh(ewGeom, ewMaterials);
-			ewMesh.data = blockData;
-
-			var nsGeom = new THREE.PlaneGeometry(1, 1);
-			nsGeom.rotateY(1.5708);
-			nsGeom.translate(pos[0], pos[1], pos[2] );
-			var nsMaterials = new THREE.MultiMaterial([
-				new THREE.MeshBasicMaterial( renderFace(blockFaces.south, textureList, biome) ), // back, south
-				new THREE.MeshBasicMaterial( renderFace(blockFaces.north, textureList, biome) )  // front, north
-			]);
-			var nsMesh = new THREE.Mesh(nsGeom, nsMaterials);
-			nsMesh.data = blockData;
-
+			var [ewMesh, nsMesh] = buildCrossBlock(blockData, blockFaces, textureList, biome);
 			scene.add(ewMesh, nsMesh);
 		}
 
 	});
 }
+
+function buildStandardBlock(blockData, blockModel, blockFaces, textureList, biome) {
+
+	const pos = blockData.position;
+	const elementData = blockModel.elements[0];
+	var geometrySizes = {
+		x: (elementData.to[0] - elementData.from[0]) / 16,
+		y: (elementData.to[1] - elementData.from[1]) / 16,
+		z: (elementData.to[2] - elementData.from[2]) / 16
+	};
+	var heightCorrection = (1 - geometrySizes.y) / 2;
+
+	var geometry = new THREE.BoxGeometry( geometrySizes.x, geometrySizes.y, geometrySizes.z );
+	geometry.translate(pos[0], pos[1] - heightCorrection, pos[2] );
+	var materials = generateBlockMaterials(blockFaces, textureList, biome);
+	var renderedBlock = new THREE.Mesh(geometry, materials);
+	renderedBlock.data = blockData;
+
+	return renderedBlock;
+}
+
+function buildCrossBlock(blockData, blockFaces, textureList, biome) {
+	const pos = blockData.position;
+	var ewGeom = new THREE.PlaneGeometry(1, 1);
+
+	ewGeom.translate(pos[0], pos[1], pos[2] );
+	var ewMaterials = new THREE.MultiMaterial([
+		new THREE.MeshBasicMaterial( renderFace(blockFaces.east, textureList, biome) ), // right, east
+		new THREE.MeshBasicMaterial( renderFace(blockFaces.west, textureList, biome) )  // left, west
+	]);
+	var ewMesh = new THREE.Mesh(ewGeom, ewMaterials);
+	ewMesh.data = blockData;
+
+	var nsGeom = new THREE.PlaneGeometry(1, 1);
+	nsGeom.rotateY(1.5708);
+	nsGeom.translate(pos[0], pos[1], pos[2] );
+	var nsMaterials = new THREE.MultiMaterial([
+		new THREE.MeshBasicMaterial( renderFace(blockFaces.south, textureList, biome) ), // back, south
+		new THREE.MeshBasicMaterial( renderFace(blockFaces.north, textureList, biome) )  // front, north
+	]);
+	var nsMesh = new THREE.Mesh(nsGeom, nsMaterials);
+	nsMesh.data = blockData;
+
+	return [ewMesh, nsMesh];
+
+}
+
 
 function addWaterBlock(blockData) {
 	var pos = blockData.position;

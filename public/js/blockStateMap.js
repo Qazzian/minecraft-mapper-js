@@ -71,6 +71,12 @@ var BlockStateMap = {
 
 		return new MetaFields(types[block.metadata]);
 	},
+	// snow
+	78: function (block) {
+		var layers = ["layers=1","layers=2","layers=3","layers=4","layers=5","layers=6","layers=7","layers=8"];
+
+		return BlockStateMap.byName(block, layers[block.metadata]);
+	},
 	// reeds
 	83: function (block) {
 		return BlockStateMap.byName(block);
