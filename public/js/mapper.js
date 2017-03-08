@@ -6,7 +6,7 @@ import { OrbitControls } from "OrbitControls";
 
 import { Textures } from "Textures";
 import LayeredTexture from "LayeredTexture";
-import { BlockStateMap } from "BlockStateMap";
+import { BlockState } from "blockState";
 
 
 
@@ -14,7 +14,6 @@ import { BlockStateMap } from "BlockStateMap";
 		// X is left - right, west - east
 		// Y is up - down
 		// Z is forward and back, north & south
-		
 
 console.log('THREE.REVISION: ', THREE.REVISION);
 THREE.Cache.enabled = true;
@@ -43,10 +42,10 @@ function requestBlocks(x, z) {
 		// console.log('blockRequest: ', blockData);
 	});
 }
-
-
-function isArray(arg) {
-    return Object.prototype.toString.call(arg) === '[object Array]';
+function requestBlock(x, y, z) {
+	socket.emit('blockRequest', {x: x, y:y, z:z}, function(blockData){
+		// console.log('blockRequest: ', blockData);
+	});
 }
 
 function addAxisLines(pos) {
@@ -57,20 +56,6 @@ function addAxisLines(pos) {
 	scene.add( axisHelper );
 }
 
-var blockStateCache = {};
-function loadblockStates(stateName) {
-	var blockStateKey = stateName;
-
-	var path = '/blockstates/' + stateName + '.json';
-	if (!blockStateCache[blockStateKey]) {
-		blockStateCache[blockStateKey] = $.getJSON(path).catch(function(){
-			var otherPath = '/blockstates/' + block.name + '.json';
-			return $.getJSON(otherPath)
-		});
-	}
-
-	return blockStateCache[blockStateKey];
-}
 
 var modelDataCache = {};
 
@@ -180,47 +165,26 @@ function addBlockList(blocks) {
 function addBlockData(blockData) {
 	var block = blockData.block;
 	var biome = block.biome;
-	var pos = blockData.position;
 	var stateName,
 		variantIndex,
 		blockModel,
 		blockFaces,
 		blockTextures;
 
-
 	if (block.type === 8 || block.type === 9) {
 		return addWaterBlock(blockData);
 	}
-	else if (typeof BlockStateMap[block.type] === 'function') {
-		var stateData = BlockStateMap[block.type](block);
-	}
-	else {
-		stateData = BlockStateMap.byDisplayName(block);
-	}
 
-	stateName = stateData.stateName;
-	variantIndex = stateData.variantName;
-
-	loadblockStates(stateName).then(function(stateData) {
-		if (stateData.variants && stateData.variants[variantIndex]) {
-			var variant = stateData.variants[variantIndex];
-			if (isArray(variant)) {
-				variant = variant[0];
-			}
+	BlockState.loadBlockStates(block).then(function(variant) {
 			return loadModelData('block/' + variant.model);
-		}
-		else {
-			console.error('UNSUPPORTED: variant data missing.', stateData)
-		}
-	}, function(blockStateError){
-		console.error('Cant find state for block', block.name, blockData);
+	}).catch(function(blockError) {
+		console.error('Error loading block: ', block.name, blockData, blockError);
 	}).then(function(modelDataResponse){
 		blockModel = modelDataResponse;
 		blockFaces = getFaceData(modelDataResponse);
 		var texturePathsList = Textures.getTexturesForBlock(blockFaces);
 		return Textures.loadTextureListAsync('textures/', texturePathsList);
 	}).then(function(textureList){
-		// console.log(blockData.block.name, blockData, blockModel, blockFaces, textureList);
 		blockTextures = textureList;
 		if (blockFaces.up && blockFaces.down) {
 			var renderedBlock = buildStandardBlock(blockData, blockModel, blockFaces, textureList, biome);
