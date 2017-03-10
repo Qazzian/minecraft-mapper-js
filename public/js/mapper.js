@@ -20,17 +20,16 @@ import { BlockState } from "blockState";
 console.log('THREE.REVISION: ', THREE.REVISION);
 THREE.Cache.enabled = true;
 
+let clock = new THREE.Clock();
+let scene = new THREE.Scene();
+let camera = new THREE.PerspectiveCamera( 75, window.innerWidth/window.innerHeight, 0.5, 1000 );
 
-var clock = new THREE.Clock();
-var scene = new THREE.Scene();
-var camera = new THREE.PerspectiveCamera( 75, window.innerWidth/window.innerHeight, 0.5, 1000 );
-
-var renderer = new THREE.WebGLRenderer();
 window.scroll(0, 0);
+let renderer = new THREE.WebGLRenderer({antialias: true});
 renderer.setSize( window.innerWidth, window.innerHeight );
 document.body.appendChild( renderer.domElement );
 
-var socket = io('http://localhost:3000');
+let socket = io('http://localhost:3000');
 socket.on('connect', function(){});
 socket.on('blockData', function(data){
 	addBlockData(data);
@@ -52,15 +51,14 @@ function requestBlock(x, y, z) {
 }
 
 function addAxisLines(pos) {
-	var axisHelper = new THREE.AxisHelper( 10 );
+	let axisHelper = new THREE.AxisHelper( 10 );
 	axisHelper.translateX(pos[0]);
 	axisHelper.translateY(pos[1]);
 	axisHelper.translateZ(pos[2]);
 	scene.add( axisHelper );
 }
 
-
-var modelDataCache = {};
+let modelDataCache = {};
 
 function loadModelData(modelName) {
 	// TODO change this to cache the promise function, ATM we are making multiple requests to the same file.
@@ -69,10 +67,10 @@ function loadModelData(modelName) {
 		return modelDataCache[modelName];
 	}
 
-	var request = $.getJSON('/models/' + modelName + '.json').then(function(modelData) {
+	let request = $.getJSON('/models/' + modelName + '.json').then(function(modelData) {
 		if (modelData.parent) {
 			return loadModelData(modelData.parent).then(function(parentModel){
-				var combinedModelData = $.extend(true, {}, parentModel, modelData);
+				let combinedModelData = $.extend(true, {}, parentModel, modelData);
 				// modelDataCache[modelName] = combinedModelData;
 				return combinedModelData;
 			});
@@ -92,15 +90,15 @@ function getFaceData(modelData) {
 		console.error("missing modelData. Expecting textures and elements: ", modelData);
 	}
 
-	var faces = {};
+	let faces = {};
 
 	modelData.elements.forEach(function(element){
 		Object.keys(element.faces).forEach(function(faceName){
 			if (!faces.hasOwnProperty(faceName)) {
 				faces[faceName] = [];
 			}
-			var face = element.faces[faceName];
-			var textureName = face.texture.replace(/^#/, '');
+			let face = element.faces[faceName];
+			let textureName = face.texture.replace(/^#/, '');
 			face.texturePath = modelData.textures[textureName] || modelData.textures['all'];
 			while (face.texturePath.match(/^#/)) {
 				face.texturePath = modelData.textures[face.texturePath.replace(/^#/, '')];
@@ -166,9 +164,9 @@ function addBlockList(blocks) {
 }
 
 function addBlockData(blockData) {
-	var block = blockData.block;
-	var biome = block.biome;
-	var stateName,
+	let block = blockData.block;
+	let biome = block.biome;
+	let stateName,
 		variantIndex,
 		blockModel,
 		blockFaces,
@@ -190,12 +188,12 @@ function addBlockData(blockData) {
 	}).then(function(textureList){
 		blockTextures = textureList;
 		if (blockFaces.up && blockFaces.down) {
-			var renderedBlock = buildStandardBlock(blockData, blockModel, blockFaces, textureList, biome);
+			let renderedBlock = buildStandardBlock(blockData, blockModel, blockFaces, textureList, biome);
 			scene.add(renderedBlock);
 		}
 		else {
 			// It's probably a cross shape
-			var [ewMesh, nsMesh] = buildCrossBlock(blockData, blockFaces, textureList, biome);
+			let [ewMesh, nsMesh] = buildCrossBlock(blockData, blockFaces, textureList, biome);
 			scene.add(ewMesh, nsMesh);
 		}
 
@@ -206,62 +204,62 @@ function buildStandardBlock(blockData, blockModel, blockFaces, textureList, biom
 
 	const pos = blockData.position;
 	const elementData = blockModel.elements[0];
-	var geometrySizes = {
+	let geometrySizes = {
 		x: (elementData.to[0] - elementData.from[0]) / 16,
 		y: (elementData.to[1] - elementData.from[1]) / 16,
 		z: (elementData.to[2] - elementData.from[2]) / 16
 	};
-	var heightCorrection = (1 - geometrySizes.y) / 2;
+	let heightCorrection = (1 - geometrySizes.y) / 2;
 
-	var geometry = new THREE.BoxGeometry( geometrySizes.x, geometrySizes.y, geometrySizes.z );
+	let geometry = new THREE.BoxBufferGeometry( geometrySizes.x, geometrySizes.y, geometrySizes.z );
 	geometry.translate(pos[0], pos[1] - heightCorrection, pos[2] );
-	var materials = generateBlockMaterials(blockFaces, textureList, biome);
-	var renderedBlock = new THREE.Mesh(geometry, materials);
+	let materials = generateBlockMaterials(blockFaces, textureList, blockData.block);
+	let renderedBlock = new THREE.Mesh(geometry, materials);
 	renderedBlock.data = blockData;
 
 	return renderedBlock;
 }
 
 function buildCrossBlock(blockData, blockFaces, textureList, biome) {
+	let material = new THREE.MeshBasicMaterial( renderFace(blockFaces.east, textureList, biome) );
 	const pos = blockData.position;
-	var ewGeom = new THREE.PlaneGeometry(1, 1);
+	let ewGeom = new THREE.PlaneGeometry(1, 1);
 
 	ewGeom.translate(pos[0], pos[1], pos[2] );
-	var ewMaterials = new THREE.MultiMaterial([
-		new THREE.MeshBasicMaterial( renderFace(blockFaces.east, textureList, biome) ), // right, east
-		new THREE.MeshBasicMaterial( renderFace(blockFaces.west, textureList, biome) )  // left, west
+	let ewMaterials = new THREE.MultiMaterial([
+		material, // right, east
+		material  // left, west
 	]);
-	var ewMesh = new THREE.Mesh(ewGeom, ewMaterials);
+	let ewMesh = new THREE.Mesh(ewGeom, ewMaterials);
 	ewMesh.data = blockData;
 
-	var nsGeom = new THREE.PlaneGeometry(1, 1);
+	let nsGeom = new THREE.PlaneGeometry(1, 1);
 	nsGeom.rotateY(1.5708);
 	nsGeom.translate(pos[0], pos[1], pos[2] );
-	var nsMaterials = new THREE.MultiMaterial([
-		new THREE.MeshBasicMaterial( renderFace(blockFaces.south, textureList, biome) ), // back, south
-		new THREE.MeshBasicMaterial( renderFace(blockFaces.north, textureList, biome) )  // front, north
+	let nsMaterials = new THREE.MultiMaterial([
+		material, // back, south
+		material  // front, north
 	]);
-	var nsMesh = new THREE.Mesh(nsGeom, nsMaterials);
+	let nsMesh = new THREE.Mesh(nsGeom, nsMaterials);
 	nsMesh.data = blockData;
 
 	return [ewMesh, nsMesh];
-
 }
 
 
 function addWaterBlock(blockData) {
-	var pos = blockData.position;
+	let pos = blockData.position;
 
 	return Textures.loadTextureAsync('textures/blocks/water_still.png').then(function(waterTexture){
-		var waterMaterial = new THREE.MeshBasicMaterial( {
+		let waterMaterial = new THREE.MeshBasicMaterial( {
 			color: 0xffffff, 
 			map: waterTexture,
 			opacity: 0.8,
 			transparent: true
 		} );
-		var geometry = new THREE.BoxGeometry( 1,1,1 );
+		let geometry = new THREE.BoxGeometry( 1,1,1 );
 		geometry.translate(pos[0], pos[1], pos[2] );
-		var cube = new THREE.Mesh(geometry, waterMaterial);
+		let cube = new THREE.Mesh(geometry, waterMaterial);
 		scene.add(cube);
 		cube.data = blockData;
 	});
@@ -290,15 +288,15 @@ function generateCubesAsync() {
 }
 
 
-var cameraControls = new OrbitControls( camera, renderer.domElement, scene );
+let cameraControls = new OrbitControls( camera, renderer.domElement, scene );
 cameraControls.userPanSpeed = 1.0;
 cameraControls.onObjectSelected = onObjectSelected;
 
 function updateCameraPosition()
 {
-	var delta = clock.getDelta(); // seconds.
-	var moveDistance = 200 * delta; // 200 pixels per second
-	var rotateAngle = Math.PI / 2 * delta;   // pi/2 radians (90 degrees) per second
+	let delta = clock.getDelta(); // seconds.
+	let moveDistance = 200 * delta; // 200 pixels per second
+	let rotateAngle = Math.PI / 2 * delta;   // pi/2 radians (90 degrees) per second
 	
 	cameraControls.update();
 }
@@ -324,7 +322,7 @@ generateCubesAsync().then(function(){
 		render();
 });
 
-var render = function () {
+let render = function () {
 	requestAnimationFrame( render );
 
 	updateCameraPosition();
