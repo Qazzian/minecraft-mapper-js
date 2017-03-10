@@ -111,20 +111,21 @@ function getFaceData(modelData) {
 	return faces;
 }
 
-
-function renderFace(face, textureMap, biomeData) {
-	var baseColor;
+function renderFace(face, textureMap, block) {
+	let baseColor;
 
 	if (face.length === 1) {
-		baseColor = face[0].hasOwnProperty('tintindex') ? biomeData.color : 0xffffff;
+		baseColor = face[0].hasOwnProperty('tintindex') ? Textures.getTintColour(block) : 0xffffff;
 		return {color: baseColor, map: textureMap[face[0].texturePath], alphaTest: 0.5, side: THREE.DoubleSide}
 	}
 	else if (face.length > 1) {
-		var faceLayerList = [];
+		let faceLayerList = [];
 		face.forEach(function(faceLayer){
-			var texture;
+			let texture;
 			if (faceLayer.hasOwnProperty('tintindex')) {
-				texture = Textures.generateTintedTexture(faceLayer.texturePath, textureMap[faceLayer.texturePath], biomeData.color);
+				// TODO the tint algorithm is more complicated than I thought
+				// @see http://minecraft.gamepedia.com/Biome#Technical_details
+				texture = Textures.generateTintedTexture(faceLayer.texturePath, textureMap[faceLayer.texturePath], Textures.getTintColour(block));
 			}
 			else {
 				texture = textureMap[faceLayer.texturePath];
@@ -135,18 +136,18 @@ function renderFace(face, textureMap, biomeData) {
 	}
 }
 
-function generateBlockMaterials(faceData, textureMap, biomeData) {
-
-
-
+// TODO cache materials so they can be applied to multiple blocks
+// TODO see http://learningthreejs.com/blog/2011/09/16/performance-caching-material/
+function generateBlockMaterials(faceData, textureMap, block) {
 	var materials = [
-	// if the block.element.face has a "tintindex": 0 then use the biome colour instead of white
-	    new THREE.MeshBasicMaterial( renderFace(faceData.east, textureMap, biomeData) ), // right, east
-	    new THREE.MeshBasicMaterial( renderFace(faceData.west, textureMap, biomeData) ), // left, west
-	    new THREE.MeshBasicMaterial( renderFace(faceData.up, textureMap, biomeData) ), // top
-	    new THREE.MeshBasicMaterial( renderFace(faceData.down, textureMap, biomeData) ), // bottom
-	    new THREE.MeshBasicMaterial( renderFace(faceData.south, textureMap, biomeData) ), // back, south
-	    new THREE.MeshBasicMaterial( renderFace(faceData.north, textureMap, biomeData) )  // front, north
+		// if the block.element.face has a "tintindex": 0 then use the biome colour instead of white
+		// TODO different blocks have different tints
+	    new THREE.MeshBasicMaterial( renderFace(faceData.east, textureMap, block) ), // right, east
+	    new THREE.MeshBasicMaterial( renderFace(faceData.west, textureMap, block) ), // left, west
+	    new THREE.MeshBasicMaterial( renderFace(faceData.up, textureMap, block) ), // top
+	    new THREE.MeshBasicMaterial( renderFace(faceData.down, textureMap, block) ), // bottom
+	    new THREE.MeshBasicMaterial( renderFace(faceData.south, textureMap, block) ), // back, south
+	    new THREE.MeshBasicMaterial( renderFace(faceData.north, textureMap, block) )  // front, north
 	];
 
 	return new THREE.MultiMaterial( materials);
