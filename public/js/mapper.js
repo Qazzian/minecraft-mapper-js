@@ -8,12 +8,14 @@ import { Textures } from "Textures";
 import LayeredTexture from "LayeredTexture";
 import { BlockState } from "blockState";
 
+"use strict";
 
+// Note about Axis in Three.js
+// X is left - right, west - east
+// Y is up - down
+// Z is forward and back, north & south
 
-"use strict"; 
-		// X is left - right, west - east
-		// Y is up - down
-		// Z is forward and back, north & south
+// Sea level: Y=64
 
 console.log('THREE.REVISION: ', THREE.REVISION);
 THREE.Cache.enabled = true;
