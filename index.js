@@ -9,6 +9,7 @@ const WebSocket = require('socket.io');
 
 // Minecraft libraries
 var World = require('prismarine-world')("1.11.2");
+var mcData=require("minecraft-data")("1.11.2");
 var Vec3 = require('vec3');
 
 var regionPath = path.join(__dirname, "/map/region");
@@ -30,19 +31,20 @@ io.on('connection', function(client){
 	client.on('blockRequest', function(data){
 		// console.log('blockRequest: ', data);
 		if (data.hasOwnProperty('x') && data.hasOwnProperty('y') && data.hasOwnProperty('z')) {
-			// TODO
+			getBlock(data.x, data.y, data.z).then(function(blockData){
+				sendBlock(blockData, client);
+			});
+
 		}
 		else if (data.hasOwnProperty('x') && data.hasOwnProperty('z')) {
 			var block = getHighestBlock(data.x, 255, data.z).then(function(blockData) {
-				if (blockData.block.meta) {
-					console.log('BLOCK META: ', blockData.block.name, blockData.block.meta)
-				}
+				sendBlock(blockData, client);
 
-				client.emit('blockData', blockData);
 				nextPos = [blockData.position[0], blockData.position[1]-1, blockData.position[2]];
-				getBlocksYDeep(nextPos, 5).then(function(blockList){
-					console.log('Block Y Deep: ', blockList.length);
+				getBlocksYDeep(nextPos, 2).then(function(blockList){
 					client.emit('blockList', blockList);
+				}).catch(function(error){
+					console.info('ERROR: ', error);
 				});
 			});
 		}
@@ -59,8 +61,6 @@ server.listen(3000, function () {
 // Setup static routes
 app.use(express.static(path.join(__dirname, 'public')));
 app.use('/js/lib/steal', express.static(path.join(__dirname, 'node_modules/steal')));
-
-
 
 // TODO loop until we find first non-air block (block.type != 0)
 
@@ -86,10 +86,21 @@ function getBlocksYDeep(pos, depth) {
 
 	for (y = pos[1]; blockRequests.length<=depth; y--) {
 		// TODO skip air blocks
-		blockRequests.push(getBlock(pos[0], y, pos[2]));
+		let req = getBlock(pos[0], y, pos[2]).then(function(blockData){
+			var block = addBlockAttributes(blockData.block);
+			blockData.block = block;
+			return blockData;
+		});
+		blockRequests.push(req);
+
 	}
 
 	return Promise.all(blockRequests);
+}
+
+function sendBlock(blockData, client) {
+	var block = addBlockAttributes(blockData.block);
+	client.emit('blockData', {block: block, position: blockData.position});
 }
 
 function getBlock(x, y, z) {
@@ -98,8 +109,15 @@ function getBlock(x, y, z) {
 	});
 }
 
+function addBlockAttributes(block) {
+	var extraData = mcData.blocks[block.type];
+	block.transparent = extraData.transparent;
+	return block;
+}
+
 getHighestBlock(0, 255, 0).then(function(highestBlock){
-	console.log('highestBlock:', highestBlock);
+	addBlockAttributes(highestBlock.block);
+	console.log('highestBlock:', JSON.stringify(highestBlock, null, 4));
 });
 
 // world.getBlock(new Vec3(0,yPos,0))
