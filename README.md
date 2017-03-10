@@ -17,12 +17,22 @@ npm install
 
 ## Setup
 
-Copy a map saved file into minecraft-mapper-js/map.  
-There are also a number of minecraft files you will need that I've not been able to script out yet.  
-Find a copy of the Minecraft.jar file and open it with a zip file manager.  
+Copy your Minecraft map folder into minecraft-mapper-js/map.  
+Map locations depend on which OS you run Minecraft on.
+
+* Windows: 'C:\Users\your username\appdata\roaming\.minecraft\saves' by going to run and entering '%appdata%'
+* Mac OS X: Go to the "Go" menu in the Finder, click "Go to folder", and type '~/Library/Application Support/minecraft/saves'
+* Linux: Many repositories install Minecraft in the $HOME directory, '~/.minecraft/saves',
+
+There are also a number of assets that you will need from the main Minecraft executable.  
+Find a copy of the Minecraft.jar file and open it with a zip file manager.  The location will depend on which version you have and OS. I suggest using Google to find it for your environment.
+
+Copy the jar file somewhere accessible.  
+Change the file extension from .jar to .zip  
+
 Copy the `blockstates`, `models` and `textures` folders into `minecraft-mapper-js/public`
 
-The directory structure should look like:
+Once you have done all of the above the directory structure should look like this:
 <pre>
 minecraft-mapper-js
 ├── map
@@ -57,5 +67,13 @@ minecraft-mapper-js
 
 ## Running
 Start the server with `npm start`  
-Go to http://localhost:3000/ in a WebGl supporting browser   
+Go to http://localhost:3000/ in a browser that supports WebGl.   
 
+
+# Thanks
+
+This mapping tool has been built on top of the following libraries and frameworks: 
+* [Three.js](https://threejs.org)
+* [PrismarineJS](https://github.com/PrismarineJS/prismarine-world)
+
+All images and textures are the copyright of Mojang.
