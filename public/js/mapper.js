@@ -113,28 +113,49 @@ function getFaceData(modelData) {
 	return faces;
 }
 
+let faceCache = {};
+
 function renderFace(face, textureMap, block) {
 	let baseColor;
+	let cacheKey = [block.name, face[0].texturePath, block.biome.name].join('|');
+
+	if (faceCache[cacheKey]) {
+		return faceCache[cacheKey];
+	}
+
+	// console.info('RENDER FACE:', cacheKey, face, textureMap, block);
 
 	if (face.length === 1) {
 		baseColor = face[0].hasOwnProperty('tintindex') ? Textures.getTintColour(block) : 0xffffff;
-		return {color: baseColor, map: textureMap[face[0].texturePath], alphaTest: 0.5, side: THREE.DoubleSide}
+		faceCache[cacheKey] = new THREE.MeshBasicMaterial({
+			color: baseColor,
+			map: textureMap[face[0].texturePath],
+			alphaTest: 0.5,
+			side: THREE.DoubleSide
+		});
+		return faceCache[cacheKey];
 	}
 	else if (face.length > 1) {
 		let faceLayerList = [];
 		face.forEach(function (faceLayer) {
 			let texture;
 			if (faceLayer.hasOwnProperty('tintindex')) {
-				// TODO the tint algorithm is more complicated than I thought
-				// @see http://minecraft.gamepedia.com/Biome#Technical_details
-				texture = Textures.generateTintedTexture(faceLayer.texturePath, textureMap[faceLayer.texturePath], Textures.getTintColour(block));
+				texture = Textures.generateTintedTexture(faceLayer.texturePath,
+					textureMap[faceLayer.texturePath],
+					Textures.getTintColour(block));
 			}
 			else {
 				texture = textureMap[faceLayer.texturePath];
 			}
 			faceLayerList.push(texture);
 		});
-		return {color: 0xffffff, map: new LayeredTexture(faceLayerList), alphaTest: 0, side: THREE.DoubleSide};
+		faceCache[cacheKey] = new THREE.MeshBasicMaterial({
+			color: 0xffffff,
+			map: new LayeredTexture(faceLayerList),
+			alphaTest: 0,
+			side: THREE.DoubleSide
+		});
+		return faceCache[cacheKey];
 	}
 }
 
@@ -142,12 +163,12 @@ function renderFace(face, textureMap, block) {
 // TODO see http://learningthreejs.com/blog/2011/09/16/performance-caching-material/
 function generateBlockMaterials(faceData, textureMap, block) {
 	var materials = [
-		new THREE.MeshBasicMaterial(renderFace(faceData.east, textureMap, block)), // right, east
-		new THREE.MeshBasicMaterial(renderFace(faceData.west, textureMap, block)), // left, west
-		new THREE.MeshBasicMaterial(renderFace(faceData.up, textureMap, block)), // top
-		new THREE.MeshBasicMaterial(renderFace(faceData.down, textureMap, block)), // bottom
-		new THREE.MeshBasicMaterial(renderFace(faceData.south, textureMap, block)), // back, south
-		new THREE.MeshBasicMaterial(renderFace(faceData.north, textureMap, block))  // front, north
+		renderFace(faceData.east, textureMap, block), // right, east
+		renderFace(faceData.west, textureMap, block), // left, west
+		renderFace(faceData.up, textureMap, block), // top
+		renderFace(faceData.down, textureMap, block), // bottom
+		renderFace(faceData.south, textureMap, block), // back, south
+		renderFace(faceData.north, textureMap, block)  // front, north
 	];
 
 	return new THREE.MultiMaterial(materials);
