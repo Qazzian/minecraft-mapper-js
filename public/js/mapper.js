@@ -22,40 +22,42 @@ THREE.Cache.enabled = true;
 
 let clock = new THREE.Clock();
 let scene = new THREE.Scene();
-let camera = new THREE.PerspectiveCamera( 75, window.innerWidth/window.innerHeight, 0.5, 1000 );
+let camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.5, 1000);
 
 window.scroll(0, 0);
 let renderer = new THREE.WebGLRenderer({antialias: true});
-renderer.setSize( window.innerWidth, window.innerHeight );
-document.body.appendChild( renderer.domElement );
+renderer.setSize(window.innerWidth, window.innerHeight);
+document.body.appendChild(renderer.domElement);
 
 let socket = io('http://localhost:3000');
-socket.on('connect', function(){});
-socket.on('blockData', function(data){
+socket.on('connect', function () {
+});
+socket.on('blockData', function (data) {
 	addBlockData(data);
 });
-socket.on('blockList', function(data){
+socket.on('blockList', function (data) {
 	addBlockList(data);
 });
-socket.on('disconnect', function(){});
+socket.on('disconnect', function () {
+});
 
 function requestBlocks(x, z) {
-	socket.emit('blockRequest', {x: x, z:z}, function(blockData){
+	socket.emit('blockRequest', {x: x, z: z}, function (blockData) {
 		// console.log('blockRequest: ', blockData);
 	});
 }
 function requestBlock(x, y, z) {
-	socket.emit('blockRequest', {x: x, y:y, z:z}, function(blockData){
+	socket.emit('blockRequest', {x: x, y: y, z: z}, function (blockData) {
 		// console.log('blockRequest: ', blockData);
 	});
 }
 
 function addAxisLines(pos) {
-	let axisHelper = new THREE.AxisHelper( 10 );
+	let axisHelper = new THREE.AxisHelper(10);
 	axisHelper.translateX(pos[0]);
 	axisHelper.translateY(pos[1]);
 	axisHelper.translateZ(pos[2]);
-	scene.add( axisHelper );
+	scene.add(axisHelper);
 }
 
 let modelDataCache = {};
@@ -67,9 +69,9 @@ function loadModelData(modelName) {
 		return modelDataCache[modelName];
 	}
 
-	let request = $.getJSON('/models/' + modelName + '.json').then(function(modelData) {
+	let request = $.getJSON('/models/' + modelName + '.json').then(function (modelData) {
 		if (modelData.parent) {
-			return loadModelData(modelData.parent).then(function(parentModel){
+			return loadModelData(modelData.parent).then(function (parentModel) {
 				let combinedModelData = $.extend(true, {}, parentModel, modelData);
 				// modelDataCache[modelName] = combinedModelData;
 				return combinedModelData;
@@ -92,8 +94,8 @@ function getFaceData(modelData) {
 
 	let faces = {};
 
-	modelData.elements.forEach(function(element){
-		Object.keys(element.faces).forEach(function(faceName){
+	modelData.elements.forEach(function (element) {
+		Object.keys(element.faces).forEach(function (faceName) {
 			if (!faces.hasOwnProperty(faceName)) {
 				faces[faceName] = [];
 			}
@@ -120,7 +122,7 @@ function renderFace(face, textureMap, block) {
 	}
 	else if (face.length > 1) {
 		let faceLayerList = [];
-		face.forEach(function(faceLayer){
+		face.forEach(function (faceLayer) {
 			let texture;
 			if (faceLayer.hasOwnProperty('tintindex')) {
 				// TODO the tint algorithm is more complicated than I thought
@@ -140,24 +142,22 @@ function renderFace(face, textureMap, block) {
 // TODO see http://learningthreejs.com/blog/2011/09/16/performance-caching-material/
 function generateBlockMaterials(faceData, textureMap, block) {
 	var materials = [
-		// if the block.element.face has a "tintindex": 0 then use the biome colour instead of white
-		// TODO different blocks have different tints
-	    new THREE.MeshBasicMaterial( renderFace(faceData.east, textureMap, block) ), // right, east
-	    new THREE.MeshBasicMaterial( renderFace(faceData.west, textureMap, block) ), // left, west
-	    new THREE.MeshBasicMaterial( renderFace(faceData.up, textureMap, block) ), // top
-	    new THREE.MeshBasicMaterial( renderFace(faceData.down, textureMap, block) ), // bottom
-	    new THREE.MeshBasicMaterial( renderFace(faceData.south, textureMap, block) ), // back, south
-	    new THREE.MeshBasicMaterial( renderFace(faceData.north, textureMap, block) )  // front, north
+		new THREE.MeshBasicMaterial(renderFace(faceData.east, textureMap, block)), // right, east
+		new THREE.MeshBasicMaterial(renderFace(faceData.west, textureMap, block)), // left, west
+		new THREE.MeshBasicMaterial(renderFace(faceData.up, textureMap, block)), // top
+		new THREE.MeshBasicMaterial(renderFace(faceData.down, textureMap, block)), // bottom
+		new THREE.MeshBasicMaterial(renderFace(faceData.south, textureMap, block)), // back, south
+		new THREE.MeshBasicMaterial(renderFace(faceData.north, textureMap, block))  // front, north
 	];
 
-	return new THREE.MultiMaterial( materials);
+	return new THREE.MultiMaterial(materials);
 }
 
 function addBlockList(blocks) {
 	// console.log('BLOCK LIST:', blocks);
-	blocks.forEach(function(blockData){
+	blocks.forEach(function (blockData) {
 		if (blockData.block.type !== 0) {
-			setTimeout(function(){
+			setTimeout(function () {
 				addBlockData(blockData);
 			}, 0);
 		}
@@ -177,16 +177,16 @@ function addBlockData(blockData) {
 		return addWaterBlock(blockData);
 	}
 
-	BlockState.loadBlockStates(block).then(function(variant) {
-			return loadModelData('block/' + variant.model);
-	}).catch(function(blockError) {
+	BlockState.loadBlockStates(block).then(function (variant) {
+		return loadModelData('block/' + variant.model);
+	}).catch(function (blockError) {
 		console.error('Error loading block: ', block.name, blockData, blockError);
-	}).then(function(modelDataResponse){
+	}).then(function (modelDataResponse) {
 		blockModel = modelDataResponse;
 		blockFaces = getFaceData(modelDataResponse);
 		var texturePathsList = Textures.getTexturesForBlock(blockFaces);
 		return Textures.loadTextureListAsync('textures/', texturePathsList);
-	}).then(function(textureList){
+	}).then(function (textureList) {
 		blockTextures = textureList;
 		if (blockFaces.up && blockFaces.down) {
 			let renderedBlock = buildStandardBlock(blockData, blockModel, blockFaces, textureList, biome);
@@ -212,8 +212,8 @@ function buildStandardBlock(blockData, blockModel, blockFaces, textureList, biom
 	};
 	let heightCorrection = (1 - geometrySizes.y) / 2;
 
-	let geometry = new THREE.BoxBufferGeometry( geometrySizes.x, geometrySizes.y, geometrySizes.z );
-	geometry.translate(pos[0], pos[1] - heightCorrection, pos[2] );
+	let geometry = new THREE.BoxBufferGeometry(geometrySizes.x, geometrySizes.y, geometrySizes.z);
+	geometry.translate(pos[0], pos[1] - heightCorrection, pos[2]);
 	let materials = generateBlockMaterials(blockFaces, textureList, blockData.block);
 	let renderedBlock = new THREE.Mesh(geometry, materials);
 	renderedBlock.data = blockData;
@@ -222,11 +222,11 @@ function buildStandardBlock(blockData, blockModel, blockFaces, textureList, biom
 }
 
 function buildCrossBlock(blockData, blockFaces, textureList, biome) {
-	let material = new THREE.MeshBasicMaterial( renderFace(blockFaces.east, textureList, biome) );
+	let material = new THREE.MeshBasicMaterial(renderFace(blockFaces.east, textureList, biome));
 	const pos = blockData.position;
 	let ewGeom = new THREE.PlaneGeometry(1, 1);
 
-	ewGeom.translate(pos[0], pos[1], pos[2] );
+	ewGeom.translate(pos[0], pos[1], pos[2]);
 	let ewMaterials = new THREE.MultiMaterial([
 		material, // right, east
 		material  // left, west
@@ -236,7 +236,7 @@ function buildCrossBlock(blockData, blockFaces, textureList, biome) {
 
 	let nsGeom = new THREE.PlaneGeometry(1, 1);
 	nsGeom.rotateY(1.5708);
-	nsGeom.translate(pos[0], pos[1], pos[2] );
+	nsGeom.translate(pos[0], pos[1], pos[2]);
 	let nsMaterials = new THREE.MultiMaterial([
 		material, // back, south
 		material  // front, north
@@ -251,15 +251,15 @@ function buildCrossBlock(blockData, blockFaces, textureList, biome) {
 function addWaterBlock(blockData) {
 	let pos = blockData.position;
 
-	return Textures.loadTextureAsync('textures/blocks/water_still.png').then(function(waterTexture){
-		let waterMaterial = new THREE.MeshBasicMaterial( {
-			color: 0xffffff, 
+	return Textures.loadTextureAsync('textures/blocks/water_still.png').then(function (waterTexture) {
+		let waterMaterial = new THREE.MeshBasicMaterial({
+			color: 0xffffff,
 			map: waterTexture,
 			opacity: 0.8,
 			transparent: true
-		} );
-		let geometry = new THREE.BoxGeometry( 1,1,1 );
-		geometry.translate(pos[0], pos[1], pos[2] );
+		});
+		let geometry = new THREE.BoxGeometry(1, 1, 1);
+		geometry.translate(pos[0], pos[1], pos[2]);
 		let cube = new THREE.Mesh(geometry, waterMaterial);
 		scene.add(cube);
 		cube.data = blockData;
@@ -289,16 +289,15 @@ function generateCubesAsync() {
 }
 
 
-let cameraControls = new OrbitControls( camera, renderer.domElement, scene );
+let cameraControls = new OrbitControls(camera, renderer.domElement, scene);
 cameraControls.userPanSpeed = 1.0;
 cameraControls.onObjectSelected = onObjectSelected;
 
-function updateCameraPosition()
-{
+function updateCameraPosition() {
 	let delta = clock.getDelta(); // seconds.
 	let moveDistance = 200 * delta; // 200 pixels per second
 	let rotateAngle = Math.PI / 2 * delta;   // pi/2 radians (90 degrees) per second
-	
+
 	cameraControls.update();
 }
 
@@ -314,17 +313,17 @@ function positionCamera(cameraPos, targetPos) {
 	cameraControls.cameraObject.position.x = cameraPos[0];
 	cameraControls.cameraObject.position.y = cameraPos[1];
 	cameraControls.cameraObject.position.z = cameraPos[2];
-	cameraControls.center = new THREE.Vector3( targetPos[0], targetPos[1], targetPos[2] );
+	cameraControls.center = new THREE.Vector3(targetPos[0], targetPos[1], targetPos[2]);
 	cameraControls.update();
 	addAxisLines(targetPos);
 }
 
-generateCubesAsync().then(function(){
-		render();
+generateCubesAsync().then(function () {
+	render();
 });
 
 let render = function () {
-	requestAnimationFrame( render );
+	requestAnimationFrame(render);
 
 	updateCameraPosition();
 	renderer.render(scene, camera);
