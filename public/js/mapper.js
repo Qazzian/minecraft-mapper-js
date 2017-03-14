@@ -215,14 +215,14 @@ function addBlockData(blockData) {
 		}
 		else {
 			// It's probably a cross shape
-			let [ewMesh, nsMesh] = buildCrossBlock(blockData, blockFaces, textureList, biome);
+			let [ewMesh, nsMesh] = buildCrossBlock(blockData, blockFaces, textureList);
 			scene.add(ewMesh, nsMesh);
 		}
 
 	});
 }
 
-function buildStandardBlock(blockData, blockModel, blockFaces, textureList, biome) {
+function buildStandardBlock(blockData, blockModel, blockFaces, textureList) {
 
 	const pos = blockData.position;
 	const elementData = blockModel.elements[0];
@@ -242,8 +242,8 @@ function buildStandardBlock(blockData, blockModel, blockFaces, textureList, biom
 	return renderedBlock;
 }
 
-function buildCrossBlock(blockData, blockFaces, textureList, biome) {
-	let material = new THREE.MeshBasicMaterial(renderFace(blockFaces.east, textureList, biome));
+function buildCrossBlock(blockData, blockFaces, textureList) {
+	let material = new THREE.MeshBasicMaterial(renderFace(blockFaces.east, textureList, blockData.block));
 	const pos = blockData.position;
 	let ewGeom = new THREE.PlaneGeometry(1, 1);
 

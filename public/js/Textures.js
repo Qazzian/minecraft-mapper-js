@@ -87,18 +87,16 @@ var Textures = {
 		let temp = clamp(block.biome.temperature);
 		let rain = clamp(block.biome.rainfall) * temp;
 
-		// temp 1 -> 0
-		// rain 0 \|/ 1
+		let offsetX = (1.0 - temp) * colormaps[mapName].width ;
+		offsetX = Math.min(Math.floor(offsetX), 255);
+		let offsetY = ( 1.0 - rain) * colormaps[mapName].height;
+		offsetY = Math.min(Math.floor(offsetY), 255);
 
-		let offsetX = colormaps[mapName].width - (colormaps[mapName].width * temp);
-		offsetX = Math.round(offsetX);
-		let offsetY = colormaps[mapName].height - (colormaps[mapName].height * rain);
-		offsetY = Math.round(offsetY);
 
 		var pixelData = colormaps[mapName].getContext('2d').getImageData(offsetX, offsetY, 1, 1).data;
 
-		let hexValue = pixelData[0]*255*255 + pixelData[1]*255 + pixelData[2];
-		return hexValue;
+		let colour = new THREE.Color('rgb('+pixelData.join(',')+')');
+		return colour;
 	},
 
 	generateTintedTexture: function(textureName, texture, biomeColour) {
