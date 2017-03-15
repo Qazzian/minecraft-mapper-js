@@ -215,8 +215,8 @@ function addBlockData(blockData) {
 		}
 		else {
 			// It's probably a cross shape
-			let [ewMesh, nsMesh] = buildCrossBlock(blockData, blockFaces, textureList);
-			scene.add(ewMesh, nsMesh);
+			let crossMesh = buildCrossBlock(blockData, blockFaces, textureList);
+			scene.add(crossMesh);
 		}
 
 	});
@@ -243,31 +243,19 @@ function buildStandardBlock(blockData, blockModel, blockFaces, textureList) {
 }
 
 function buildCrossBlock(blockData, blockFaces, textureList) {
-	let material = new THREE.MeshBasicMaterial(renderFace(blockFaces.east, textureList, blockData.block));
+	let material = renderFace(blockFaces.east, textureList, blockData.block);
 	const pos = blockData.position;
-	let ewGeom = new THREE.PlaneGeometry(1, 1);
-
-	ewGeom.translate(pos[0], pos[1], pos[2]);
-	let ewMaterials = new THREE.MultiMaterial([
-		material, // right, east
-		material  // left, west
-	]);
-	let ewMesh = new THREE.Mesh(ewGeom, ewMaterials);
-	ewMesh.data = blockData;
-
 	let nsGeom = new THREE.PlaneGeometry(1, 1);
+	let ewGeom = new THREE.PlaneGeometry(1, 1);
 	nsGeom.rotateY(1.5708);
+
+	nsGeom.merge(ewGeom);
 	nsGeom.translate(pos[0], pos[1], pos[2]);
-	let nsMaterials = new THREE.MultiMaterial([
-		material, // back, south
-		material  // front, north
-	]);
-	let nsMesh = new THREE.Mesh(nsGeom, nsMaterials);
-	nsMesh.data = blockData;
+	let crossMesh = new THREE.Mesh(nsGeom, material);
 
-	return [ewMesh, nsMesh];
+	crossMesh.data = blockData;
+	return crossMesh;
 }
-
 
 function addWaterBlock(blockData) {
 	let pos = blockData.position;
