@@ -1,7 +1,9 @@
 # minecraft-mapper-js
 
+Render a Minecraft map with three.js
+
 [![Greenkeeper badge](https://badges.greenkeeper.io/Qazzian/minecraft-mapper-js.svg)](https://greenkeeper.io/)
-Render a Minecraft map in three.js
+
 
 ## Description
 
