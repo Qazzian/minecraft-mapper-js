@@ -130,6 +130,10 @@ var OrbitControls = function (cameraObject, renderElement, scene) {
 		this.center.add(distance);
 	};
 
+	this.onObjectSelected = function() {
+		// by default this does nothing but clients can override it.
+	};
+
 	this.update = function () {
 		var position = this.cameraObject.position;
 		var offset = position.clone().sub(this.center);
@@ -273,7 +277,7 @@ var OrbitControls = function (cameraObject, renderElement, scene) {
 
 		var intersects = scope.raycaster.intersectObjects( scope.scene.children );
 
-		if ( intersects.length > 0 ) {
+		if ( intersects.length > 0 && typeof scope.onObjectSelected === 'function') {
 			scope.onObjectSelected(intersects[0]);
 		}
 
