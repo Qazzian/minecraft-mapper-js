@@ -280,6 +280,7 @@ var OrbitControls = function (cameraObject, renderElement, scene) {
 	}
 
 	function onMouseWheel(event) {
+		event.preventDefault();
 		if (scope.enabled === false) return;
 		if (scope.userZoom === false) return;
 
