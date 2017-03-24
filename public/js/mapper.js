@@ -161,17 +161,34 @@ function renderFace(face, textureMap, block) {
 
 // TODO cache materials so they can be applied to multiple blocks
 // TODO see http://learningthreejs.com/blog/2011/09/16/performance-caching-material/
+let materialCache = {};
 function generateBlockMaterials(faceData, textureMap, block) {
-	var materials = [
-		renderFace(faceData.east, textureMap, block), // right, east
-		renderFace(faceData.west, textureMap, block), // left, west
-		renderFace(faceData.up, textureMap, block), // top
-		renderFace(faceData.down, textureMap, block), // bottom
-		renderFace(faceData.south, textureMap, block), // back, south
-		renderFace(faceData.north, textureMap, block)  // front, north
-	];
+	let materialKey = [block.name, block.metadata, block.biome.name].join('|');
 
-	return new THREE.MultiMaterial(materials);
+	if (!materialCache[materialKey]) {
+		var materials = [
+			renderFace(faceData.east, textureMap, block), // right, east
+			renderFace(faceData.west, textureMap, block), // left, west
+			renderFace(faceData.up, textureMap, block), // top
+			renderFace(faceData.down, textureMap, block), // bottom
+			renderFace(faceData.south, textureMap, block), // back, south
+			renderFace(faceData.north, textureMap, block)  // front, north
+		];
+		materialCache[materialKey] = new THREE.MultiMaterial(materials);
+		materialCache[materialKey].key = materialKey;
+	}
+
+	return materialCache[materialKey];
+}
+
+function generateWaterBlockMaterial() {
+	new THREE.MeshBasicMaterial({
+		color: 0xffffff,
+		map: waterTexture,
+		opacity: 0.8,
+		transparent: true
+	});
+
 }
 
 function addBlockList(blocks) {
@@ -183,6 +200,30 @@ function addBlockList(blocks) {
 			}, 0);
 		}
 	});
+}
+
+let meshByMaterial = {};
+let sceneNeedsUpdate = false;
+window.MeshByMatrial = meshByMaterial;
+
+function addToScene(geometry, material) {
+	// const materialIndex = worldMaterialsList.materials.length;
+	const materialKey = material.key || material.uuid;
+
+	if (meshByMaterial[materialKey]) {
+		console.info(`Merge Mesh: ${materialKey}`);
+		// meshByMaterial[materialKey].updateMatrix();
+		// meshByMaterial[materialKey].updateMatrixWorld(true);
+		meshByMaterial[materialKey].geometry.merge(geometry);
+		sceneNeedsUpdate = true;
+	}
+	else {
+		console.info(`New Mesh: ${materialKey}`);
+		let mesh = new THREE.Mesh(geometry, material);
+		// worldMeshList.push(mesh);
+		meshByMaterial[materialKey] = mesh;
+		// scene.add(mesh);
+	}
 }
 
 function addBlockData(blockData) {
@@ -205,18 +246,21 @@ function addBlockData(blockData) {
 	}).then(function (modelDataResponse) {
 		blockModel = modelDataResponse;
 		blockFaces = getFaceData(modelDataResponse);
-		var texturePathsList = Textures.getTexturesForBlock(blockFaces);
+		let texturePathsList = Textures.getTexturesForBlock(blockFaces);
 		return Textures.loadTextureListAsync('textures/', texturePathsList);
 	}).then(function (textureList) {
+		// TODO merge geometries see http://learningthreejs.com/blog/2011/10/05/performance-merging-geometry/
 		blockTextures = textureList;
 		if (blockFaces.up && blockFaces.down) {
-			let renderedBlock = buildStandardBlock(blockData, blockModel, blockFaces, textureList, biome);
-			scene.add(renderedBlock);
+			let {geometry, material} = buildStandardBlock(blockData, blockModel, blockFaces, textureList, biome);
+			// debugger;
+			addToScene(geometry, material);
+			// scene.add(renderedBlock);
 		}
 		else {
 			// It's probably a cross shape
-			let crossMesh = buildCrossBlock(blockData, blockFaces, textureList);
-			scene.add(crossMesh);
+			let {geometry, material} = buildCrossBlock(blockData, blockFaces, textureList);
+			addToScene(geometry, material);
 		}
 
 	});
@@ -233,13 +277,14 @@ function buildStandardBlock(blockData, blockModel, blockFaces, textureList) {
 	};
 	let heightCorrection = (1 - geometrySizes.y) / 2;
 
-	let geometry = new THREE.BoxBufferGeometry(geometrySizes.x, geometrySizes.y, geometrySizes.z);
+	let geometry = new THREE.BoxGeometry(geometrySizes.x, geometrySizes.y, geometrySizes.z);
 	geometry.translate(pos[0], pos[1] - heightCorrection, pos[2]);
 	let materials = generateBlockMaterials(blockFaces, textureList, blockData.block);
-	let renderedBlock = new THREE.Mesh(geometry, materials);
-	renderedBlock.data = blockData;
 
-	return renderedBlock;
+	return {
+		geometry: geometry,
+		material: materials
+	};
 }
 
 function buildCrossBlock(blockData, blockFaces, textureList) {
@@ -251,22 +296,17 @@ function buildCrossBlock(blockData, blockFaces, textureList) {
 
 	nsGeom.merge(ewGeom);
 	nsGeom.translate(pos[0], pos[1], pos[2]);
-	let crossMesh = new THREE.Mesh(nsGeom, material);
-
-	crossMesh.data = blockData;
-	return crossMesh;
+	return {
+		geometry: nsGeom,
+		material: material
+	};
 }
 
 function addWaterBlock(blockData) {
 	let pos = blockData.position;
 
 	return Textures.loadTextureAsync('textures/blocks/water_still.png').then(function (waterTexture) {
-		let waterMaterial = new THREE.MeshBasicMaterial({
-			color: 0xffffff,
-			map: waterTexture,
-			opacity: 0.8,
-			transparent: true
-		});
+		let waterMaterial = generateWaterBlockMaterial();
 		let geometry = new THREE.BoxGeometry(1, 1, 1);
 		geometry.translate(pos[0], pos[1], pos[2]);
 		let cube = new THREE.Mesh(geometry, waterMaterial);
