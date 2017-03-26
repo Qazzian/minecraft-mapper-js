@@ -20,7 +20,6 @@ import { BlockState } from "blockState";
 console.log('THREE.REVISION: ', THREE.REVISION);
 THREE.Cache.enabled = true;
 
-let clock = new THREE.Clock();
 let scene = new THREE.Scene();
 let camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.5, 1000);
 
@@ -43,12 +42,10 @@ socket.on('disconnect', function () {
 
 function requestBlocks(x, z) {
 	socket.emit('blockRequest', {x: x, z: z}, function (blockData) {
-		// console.log('blockRequest: ', blockData);
 	});
 }
 function requestBlock(x, y, z) {
 	socket.emit('blockRequest', {x: x, y: y, z: z}, function (blockData) {
-		// console.log('blockRequest: ', blockData);
 	});
 }
 
@@ -73,12 +70,10 @@ function loadModelData(modelName) {
 		if (modelData.parent) {
 			return loadModelData(modelData.parent).then(function (parentModel) {
 				let combinedModelData = $.extend(true, {}, parentModel, modelData);
-				// modelDataCache[modelName] = combinedModelData;
 				return combinedModelData;
 			});
 		}
 		else {
-			// modelDataCache[modelName] = modelData;
 			return modelData;
 		}
 	});
@@ -123,8 +118,6 @@ function renderFace(face, textureMap, block) {
 		return faceCache[cacheKey];
 	}
 
-	// console.info('RENDER FACE:', cacheKey, face, textureMap, block);
-
 	if (face.length === 1) {
 		baseColor = face[0].hasOwnProperty('tintindex') ? Textures.getTintColour(block) : 0xffffff;
 		faceCache[cacheKey] = new THREE.MeshBasicMaterial({
@@ -159,8 +152,6 @@ function renderFace(face, textureMap, block) {
 	}
 }
 
-// TODO cache materials so they can be applied to multiple blocks
-// TODO see http://learningthreejs.com/blog/2011/09/16/performance-caching-material/
 let materialCache = {};
 function generateBlockMaterials(faceData, textureMap, block) {
 	let materialKey = [block.name, block.metadata, block.biome.name].join('|');
@@ -201,7 +192,6 @@ function generateWaterBlockMaterial(blockData) {
 }
 
 function addBlockList(blocks) {
-	// console.log('BLOCK LIST:', blocks);
 	blocks.forEach(function (blockData) {
 		if (blockData.block.type !== 0) {
 			setTimeout(function () {
@@ -212,16 +202,12 @@ function addBlockList(blocks) {
 }
 
 let meshByMaterial = {};
-let sceneNeedsUpdate = false;
 window.MeshByMatrial = meshByMaterial;
 
 function addToScene(geometry, material) {
-	// const materialIndex = worldMaterialsList.materials.length;
 	const materialKey = material.key || material.uuid;
 
 	if (meshByMaterial[materialKey]) {
-		// meshByMaterial[materialKey].updateMatrix();
-		// meshByMaterial[materialKey].updateMatrixWorld(true);
 		let geom = meshByMaterial[materialKey].geometry;
 		geom.merge(geometry);geom
 
@@ -232,12 +218,9 @@ function addToScene(geometry, material) {
 		geom.colorsNeedUpdate = true;
 		geom.lineDistancesNeedUpdate = true;
 		geom.groupsNeedUpdate = true;
-
-		sceneNeedsUpdate = true;
 	}
 	else {
 		let mesh = new THREE.Mesh(geometry, material);
-		// worldMeshList.push(mesh);
 		meshByMaterial[materialKey] = mesh;
 		scene.add(mesh);
 	}
@@ -246,9 +229,7 @@ function addToScene(geometry, material) {
 function addBlockData(blockData) {
 	let block = blockData.block;
 	let biome = block.biome;
-	let stateName,
-		variantIndex,
-		blockModel,
+	let blockModel,
 		blockFaces,
 		blockTextures;
 
@@ -270,9 +251,7 @@ function addBlockData(blockData) {
 		blockTextures = textureList;
 		if (blockFaces.up && blockFaces.down) {
 			let {geometry, material} = buildStandardBlock(blockData, blockModel, blockFaces, textureList, biome);
-			// debugger;
 			addToScene(geometry, material);
-			// scene.add(renderedBlock);
 		}
 		else {
 			// It's probably a cross shape
@@ -322,7 +301,7 @@ function buildCrossBlock(blockData, blockFaces, textureList) {
 function addWaterBlock(blockData) {
 	let pos = blockData.position;
 
-	let waterMaterial = generateWaterBlockMaterial(blockData.block).then(waterMaterial => {
+	return generateWaterBlockMaterial(blockData.block).then(waterMaterial => {
 		let geometry = new THREE.BoxGeometry(1, 1, 1);
 		geometry.translate(pos[0], pos[1], pos[2]);
 		let cube = new THREE.Mesh(geometry, waterMaterial);
@@ -330,7 +309,6 @@ function addWaterBlock(blockData) {
 		cube.data = blockData;
 	});
 }
-
 
 function generateCubesAsync() {
 	var dist = 10;
@@ -358,22 +336,11 @@ let cameraControls = new OrbitControls(camera, renderer.domElement, scene);
 cameraControls.userPanSpeed = 1.0;
 cameraControls.onObjectSelected = onObjectSelected;
 
-function updateCameraPosition() {
-	let delta = clock.getDelta(); // seconds.
-	let moveDistance = 200 * delta; // 200 pixels per second
-	let rotateAngle = Math.PI / 2 * delta;   // pi/2 radians (90 degrees) per second
-
-	cameraControls.update();
-}
-
 function onObjectSelected(intersected) {
-	debugger;
-	console.log(intersected.object);
+	console.log(intersected.object.data);
 }
 
-
-var cameraAngle = 0;
-
+// todo change args to lookAt, offset
 function positionCamera(cameraPos, targetPos) {
 	cameraControls.cameraObject.position.x = cameraPos[0];
 	cameraControls.cameraObject.position.y = cameraPos[1];
@@ -390,6 +357,6 @@ generateCubesAsync().then(function () {
 let render = function () {
 	requestAnimationFrame(render);
 
-	updateCameraPosition();
+	cameraControls.update();
 	renderer.render(scene, camera);
 };
