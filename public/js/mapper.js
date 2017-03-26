@@ -211,18 +211,26 @@ function addToScene(geometry, material) {
 	const materialKey = material.key || material.uuid;
 
 	if (meshByMaterial[materialKey]) {
-		console.info(`Merge Mesh: ${materialKey}`);
 		// meshByMaterial[materialKey].updateMatrix();
 		// meshByMaterial[materialKey].updateMatrixWorld(true);
-		meshByMaterial[materialKey].geometry.merge(geometry);
+		let geom = meshByMaterial[materialKey].geometry;
+		geom.merge(geometry);geom
+
+		geom.elementsNeedUpdate = true;
+		geom.verticesNeedUpdate = true;
+		geom.uvsNeedUpdate = true;
+		geom.normalsNeedUpdate = true;
+		geom.colorsNeedUpdate = true;
+		geom.lineDistancesNeedUpdate = true;
+		geom.groupsNeedUpdate = true;
+
 		sceneNeedsUpdate = true;
 	}
 	else {
-		console.info(`New Mesh: ${materialKey}`);
 		let mesh = new THREE.Mesh(geometry, material);
 		// worldMeshList.push(mesh);
 		meshByMaterial[materialKey] = mesh;
-		// scene.add(mesh);
+		scene.add(mesh);
 	}
 }
 
