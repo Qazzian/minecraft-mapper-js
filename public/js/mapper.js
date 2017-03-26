@@ -181,14 +181,23 @@ function generateBlockMaterials(faceData, textureMap, block) {
 	return materialCache[materialKey];
 }
 
-function generateWaterBlockMaterial() {
-	new THREE.MeshBasicMaterial({
-		color: 0xffffff,
-		map: waterTexture,
-		opacity: 0.8,
-		transparent: true
-	});
+let waterCache = {};
+function generateWaterBlockMaterial(blockData) {
+	let biomeType = blockData.biome.id;
 
+	if (!waterCache[biomeType]) {
+		waterCache[biomeType] = Textures.loadTextureAsync('textures/blocks/water_still.png').then(function (waterTexture) {
+
+			return new THREE.MeshBasicMaterial({
+				color: 0xffffff,
+				map: waterTexture,
+				opacity: 0.8,
+				transparent: true
+			});
+		});
+	}
+
+	return waterCache[biomeType];
 }
 
 function addBlockList(blocks) {
@@ -313,8 +322,7 @@ function buildCrossBlock(blockData, blockFaces, textureList) {
 function addWaterBlock(blockData) {
 	let pos = blockData.position;
 
-	return Textures.loadTextureAsync('textures/blocks/water_still.png').then(function (waterTexture) {
-		let waterMaterial = generateWaterBlockMaterial();
+	let waterMaterial = generateWaterBlockMaterial(blockData.block).then(waterMaterial => {
 		let geometry = new THREE.BoxGeometry(1, 1, 1);
 		geometry.translate(pos[0], pos[1], pos[2]);
 		let cube = new THREE.Mesh(geometry, waterMaterial);
