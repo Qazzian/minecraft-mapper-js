@@ -209,7 +209,7 @@ function addToScene(geometry, material) {
 
 	if (meshByMaterial[materialKey]) {
 		let geom = meshByMaterial[materialKey].geometry;
-		geom.merge(geometry);geom
+		geom.merge(geometry);
 
 		geom.elementsNeedUpdate = true;
 		geom.verticesNeedUpdate = true;
@@ -218,6 +218,7 @@ function addToScene(geometry, material) {
 		geom.colorsNeedUpdate = true;
 		geom.lineDistancesNeedUpdate = true;
 		geom.groupsNeedUpdate = true;
+		geom.computeBoundingSphere();
 	}
 	else {
 		let mesh = new THREE.Mesh(geometry, material);
