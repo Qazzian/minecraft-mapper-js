@@ -75,7 +75,6 @@ let BlockState = {
 	},
 	// grass
 	2: function (block) {
-		console.info('GRASS: ', block);
 		const varList = ['snowy=false', 'snowy=true'];
 		// TODO snowy value comes from inspecting the block above
 		return MetaFields(block.name, varList[block.metadata]);

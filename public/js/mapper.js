@@ -20,7 +20,6 @@ import { BlockState } from "blockState";
 console.log('THREE.REVISION: ', THREE.REVISION);
 THREE.Cache.enabled = true;
 
-let clock = new THREE.Clock();
 let scene = new THREE.Scene();
 let camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.5, 1000);
 
@@ -43,12 +42,10 @@ socket.on('disconnect', function () {
 
 function requestBlocks(x, z) {
 	socket.emit('blockRequest', {x: x, z: z}, function (blockData) {
-		// console.log('blockRequest: ', blockData);
 	});
 }
 function requestBlock(x, y, z) {
 	socket.emit('blockRequest', {x: x, y: y, z: z}, function (blockData) {
-		// console.log('blockRequest: ', blockData);
 	});
 }
 
@@ -73,12 +70,10 @@ function loadModelData(modelName) {
 		if (modelData.parent) {
 			return loadModelData(modelData.parent).then(function (parentModel) {
 				let combinedModelData = $.extend(true, {}, parentModel, modelData);
-				// modelDataCache[modelName] = combinedModelData;
 				return combinedModelData;
 			});
 		}
 		else {
-			// modelDataCache[modelName] = modelData;
 			return modelData;
 		}
 	});
@@ -123,8 +118,6 @@ function renderFace(face, textureMap, block) {
 		return faceCache[cacheKey];
 	}
 
-	// console.info('RENDER FACE:', cacheKey, face, textureMap, block);
-
 	if (face.length === 1) {
 		baseColor = face[0].hasOwnProperty('tintindex') ? Textures.getTintColour(block) : 0xffffff;
 		faceCache[cacheKey] = new THREE.MeshBasicMaterial({
@@ -159,23 +152,46 @@ function renderFace(face, textureMap, block) {
 	}
 }
 
-// TODO cache materials so they can be applied to multiple blocks
-// TODO see http://learningthreejs.com/blog/2011/09/16/performance-caching-material/
+let materialCache = {};
 function generateBlockMaterials(faceData, textureMap, block) {
-	var materials = [
-		renderFace(faceData.east, textureMap, block), // right, east
-		renderFace(faceData.west, textureMap, block), // left, west
-		renderFace(faceData.up, textureMap, block), // top
-		renderFace(faceData.down, textureMap, block), // bottom
-		renderFace(faceData.south, textureMap, block), // back, south
-		renderFace(faceData.north, textureMap, block)  // front, north
-	];
+	let materialKey = [block.name, block.metadata, block.biome.name].join('|');
 
-	return new THREE.MultiMaterial(materials);
+	if (!materialCache[materialKey]) {
+		var materials = [
+			renderFace(faceData.east, textureMap, block), // right, east
+			renderFace(faceData.west, textureMap, block), // left, west
+			renderFace(faceData.up, textureMap, block), // top
+			renderFace(faceData.down, textureMap, block), // bottom
+			renderFace(faceData.south, textureMap, block), // back, south
+			renderFace(faceData.north, textureMap, block)  // front, north
+		];
+		materialCache[materialKey] = new THREE.MultiMaterial(materials);
+		materialCache[materialKey].key = materialKey;
+	}
+
+	return materialCache[materialKey];
+}
+
+let waterCache = {};
+function generateWaterBlockMaterial(blockData) {
+	let biomeType = blockData.biome.id;
+
+	if (!waterCache[biomeType]) {
+		waterCache[biomeType] = Textures.loadTextureAsync('textures/blocks/water_still.png').then(function (waterTexture) {
+
+			return new THREE.MeshBasicMaterial({
+				color: 0xffffff,
+				map: waterTexture,
+				opacity: 0.8,
+				transparent: true
+			});
+		});
+	}
+
+	return waterCache[biomeType];
 }
 
 function addBlockList(blocks) {
-	// console.log('BLOCK LIST:', blocks);
 	blocks.forEach(function (blockData) {
 		if (blockData.block.type !== 0) {
 			setTimeout(function () {
@@ -185,12 +201,36 @@ function addBlockList(blocks) {
 	});
 }
 
+let meshByMaterial = {};
+window.MeshByMatrial = meshByMaterial;
+
+function addToScene(geometry, material) {
+	const materialKey = material.key || material.uuid;
+
+	if (meshByMaterial[materialKey]) {
+		let geom = meshByMaterial[materialKey].geometry;
+		geom.merge(geometry);
+
+		geom.elementsNeedUpdate = true;
+		geom.verticesNeedUpdate = true;
+		geom.uvsNeedUpdate = true;
+		geom.normalsNeedUpdate = true;
+		geom.colorsNeedUpdate = true;
+		geom.lineDistancesNeedUpdate = true;
+		geom.groupsNeedUpdate = true;
+		geom.computeBoundingSphere();
+	}
+	else {
+		let mesh = new THREE.Mesh(geometry, material);
+		meshByMaterial[materialKey] = mesh;
+		scene.add(mesh);
+	}
+}
+
 function addBlockData(blockData) {
 	let block = blockData.block;
 	let biome = block.biome;
-	let stateName,
-		variantIndex,
-		blockModel,
+	let blockModel,
 		blockFaces,
 		blockTextures;
 
@@ -205,18 +245,19 @@ function addBlockData(blockData) {
 	}).then(function (modelDataResponse) {
 		blockModel = modelDataResponse;
 		blockFaces = getFaceData(modelDataResponse);
-		var texturePathsList = Textures.getTexturesForBlock(blockFaces);
+		let texturePathsList = Textures.getTexturesForBlock(blockFaces);
 		return Textures.loadTextureListAsync('textures/', texturePathsList);
 	}).then(function (textureList) {
+		// TODO merge geometries see http://learningthreejs.com/blog/2011/10/05/performance-merging-geometry/
 		blockTextures = textureList;
 		if (blockFaces.up && blockFaces.down) {
-			let renderedBlock = buildStandardBlock(blockData, blockModel, blockFaces, textureList, biome);
-			scene.add(renderedBlock);
+			let {geometry, material} = buildStandardBlock(blockData, blockModel, blockFaces, textureList, biome);
+			addToScene(geometry, material);
 		}
 		else {
 			// It's probably a cross shape
-			let crossMesh = buildCrossBlock(blockData, blockFaces, textureList);
-			scene.add(crossMesh);
+			let {geometry, material} = buildCrossBlock(blockData, blockFaces, textureList);
+			addToScene(geometry, material);
 		}
 
 	});
@@ -233,13 +274,14 @@ function buildStandardBlock(blockData, blockModel, blockFaces, textureList) {
 	};
 	let heightCorrection = (1 - geometrySizes.y) / 2;
 
-	let geometry = new THREE.BoxBufferGeometry(geometrySizes.x, geometrySizes.y, geometrySizes.z);
+	let geometry = new THREE.BoxGeometry(geometrySizes.x, geometrySizes.y, geometrySizes.z);
 	geometry.translate(pos[0], pos[1] - heightCorrection, pos[2]);
 	let materials = generateBlockMaterials(blockFaces, textureList, blockData.block);
-	let renderedBlock = new THREE.Mesh(geometry, materials);
-	renderedBlock.data = blockData;
 
-	return renderedBlock;
+	return {
+		geometry: geometry,
+		material: materials
+	};
 }
 
 function buildCrossBlock(blockData, blockFaces, textureList) {
@@ -251,22 +293,16 @@ function buildCrossBlock(blockData, blockFaces, textureList) {
 
 	nsGeom.merge(ewGeom);
 	nsGeom.translate(pos[0], pos[1], pos[2]);
-	let crossMesh = new THREE.Mesh(nsGeom, material);
-
-	crossMesh.data = blockData;
-	return crossMesh;
+	return {
+		geometry: nsGeom,
+		material: material
+	};
 }
 
 function addWaterBlock(blockData) {
 	let pos = blockData.position;
 
-	return Textures.loadTextureAsync('textures/blocks/water_still.png').then(function (waterTexture) {
-		let waterMaterial = new THREE.MeshBasicMaterial({
-			color: 0xffffff,
-			map: waterTexture,
-			opacity: 0.8,
-			transparent: true
-		});
+	return generateWaterBlockMaterial(blockData.block).then(waterMaterial => {
 		let geometry = new THREE.BoxGeometry(1, 1, 1);
 		geometry.translate(pos[0], pos[1], pos[2]);
 		let cube = new THREE.Mesh(geometry, waterMaterial);
@@ -274,7 +310,6 @@ function addWaterBlock(blockData) {
 		cube.data = blockData;
 	});
 }
-
 
 function generateCubesAsync() {
 	var dist = 10;
@@ -302,22 +337,11 @@ let cameraControls = new OrbitControls(camera, renderer.domElement, scene);
 cameraControls.userPanSpeed = 1.0;
 cameraControls.onObjectSelected = onObjectSelected;
 
-function updateCameraPosition() {
-	let delta = clock.getDelta(); // seconds.
-	let moveDistance = 200 * delta; // 200 pixels per second
-	let rotateAngle = Math.PI / 2 * delta;   // pi/2 radians (90 degrees) per second
-
-	cameraControls.update();
-}
-
 function onObjectSelected(intersected) {
-	debugger;
-	console.log(intersected.object);
+	console.log(intersected.object.data);
 }
 
-
-var cameraAngle = 0;
-
+// todo change args to lookAt, offset
 function positionCamera(cameraPos, targetPos) {
 	cameraControls.cameraObject.position.x = cameraPos[0];
 	cameraControls.cameraObject.position.y = cameraPos[1];
@@ -334,6 +358,6 @@ generateCubesAsync().then(function () {
 let render = function () {
 	requestAnimationFrame(render);
 
-	updateCameraPosition();
+	cameraControls.update();
 	renderer.render(scene, camera);
 };
