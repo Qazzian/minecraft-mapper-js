@@ -12,8 +12,6 @@ class MergeTest {
 		this.scene = this.sceneRenderer.scene;
 
 		global.scene = this.scene;
-
-
 	}
 
 	buildMaterial() {
@@ -47,12 +45,15 @@ class MergeTest {
 	}
 
 	addCube(x, y, z) {
+
+		// Simulate getting data from an external service.
 		setTimeout(() => {
-			debugger;
+
 			let block = new THREE.BoxGeometry(0.8, 0.8, 0.8);
 			block.translate(x, y, z);
 			this.block0.merge(block);
 
+			// Tell THREE to recalculate various things.
 			this.block0.elementsNeedUpdate = true;
 			this.block0.verticesNeedUpdate = true;
 			this.block0.uvsNeedUpdate = true;
@@ -60,6 +61,9 @@ class MergeTest {
 			this.block0.colorsNeedUpdate = true;
 			this.block0.lineDistancesNeedUpdate = true;
 			this.block0.groupsNeedUpdate = true;
+
+			// The bounding Sphere is used by the camera to work out if a mesh should be visible or not.
+			this.block0.computeBoundingSphere();
 		}, 50);
 	}
 }
