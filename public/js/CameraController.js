@@ -3,7 +3,6 @@ import { OrbitControls } from "OrbitControls";
 
 class CameraController {
 	constructor(renderer, scene, options) {
-		debugger;
 		this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.5, 1000);
 		this.renderer = renderer;
 		this.scene = scene;
