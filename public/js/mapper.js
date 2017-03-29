@@ -28,7 +28,7 @@ let renderer = new THREE.WebGLRenderer({antialias: true});
 renderer.setSize(window.innerWidth, window.innerHeight);
 document.body.appendChild(renderer.domElement);
 
-let socket = io('http://localhost:3000');
+let socket = io(window.location.href);
 socket.on('connect', function () {
 });
 socket.on('blockData', function (data) {
