@@ -1,12 +1,10 @@
-import $ from "jquery";
+
 import io from "socket.io";
 import * as THREE from "three";
 
-import { OrbitControls } from "OrbitControls";
 
-import { Textures } from "Textures";
-import LayeredTexture from "LayeredTexture";
-import { BlockState } from "blockState";
+import { SceneRenderer } from "SceneRenderer";
+import { BlockRenderer } from "BlockRenderer";
 
 "use strict";
 
@@ -20,22 +18,97 @@ import { BlockState } from "blockState";
 console.log('THREE.REVISION: ', THREE.REVISION);
 THREE.Cache.enabled = true;
 
-let scene = new THREE.Scene();
-let camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.5, 1000);
+const debugMode = false;
 
-window.scroll(0, 0);
-let renderer = new THREE.WebGLRenderer({antialias: true});
-renderer.setSize(window.innerWidth, window.innerHeight);
-document.body.appendChild(renderer.domElement);
+class Mapper {
+	constructor() {
+		this.sceneRenderer = new SceneRenderer();
+		this.scene = this.sceneRenderer.scene;
+
+		this.blockRenderer = new BlockRenderer();
+
+		if (debugMode) {
+			this.addDebugObjects();
+		}
+	}
+
+	start() {
+		this.sceneRenderer.animate();
+	}
+
+	addDebugObjects() {
+		sceneRenderer.addAxisLines(pos);
+	}
+
+	positionCamera(cameraPos, targetPos) {
+		console.info('pos cam', cameraPos, targetPos);
+		this.sceneRenderer.positionCamera(cameraPos, targetPos);
+	}
+
+// TODO use a webWorker to process the block data queue and add elements to the scene
+	addBlockData(blockData) {
+		this.blockRenderer.render(blockData).then(modelData => {
+			this.addToScene(modelData.geometry, modelData.material);
+		});
+	}
+
+	addBlockList(blocks) {
+		blocks.forEach((blockData) => {
+			if (blockData.block.type !== 0) {
+				setTimeout(() => {
+					this.addBlockData(blockData);
+				}, 0);
+			}
+		});
+	}
+
+	addToScene(geometry, material) {
+		const materialKey = material.key || material.uuid;
+
+		if (meshByMaterial[materialKey]) {
+			let geom = meshByMaterial[materialKey].geometry;
+			geom.merge(geometry);
+
+			geom.elementsNeedUpdate = true;
+			geom.verticesNeedUpdate = true;
+			geom.uvsNeedUpdate = true;
+			geom.normalsNeedUpdate = true;
+			geom.colorsNeedUpdate = true;
+			geom.lineDistancesNeedUpdate = true;
+			geom.groupsNeedUpdate = true;
+			geom.computeBoundingSphere();
+		}
+		else {
+			let mesh = new THREE.Mesh(geometry, material);
+			meshByMaterial[materialKey] = mesh;
+			scene.add(mesh);
+		}
+	}
+
+}
+
+
+let meshByMaterial = {};
+window.MeshByMatrial = meshByMaterial;
+
+
+const mapper = new Mapper();
+// mapper.start();
+
+let scene = mapper.scene;
 
 let socket = io(window.location.href);
+// let socket = io('http://www.qazzian.com:3000/');
+
 socket.on('connect', function () {
 });
+
 socket.on('blockData', function (data) {
-	addBlockData(data);
+	// TODO add block data to a queue
+	mapper.addBlockData(data);
 });
 socket.on('blockList', function (data) {
-	addBlockList(data);
+	mapper.addBlockList(data);
 });
 socket.on('disconnect', function () {
 });
@@ -49,147 +122,10 @@ function requestBlock(x, y, z) {
 	});
 }
 
-function addAxisLines(pos) {
-	let axisHelper = new THREE.AxisHelper(10);
-	axisHelper.translateX(pos[0]);
-	axisHelper.translateY(pos[1]);
-	axisHelper.translateZ(pos[2]);
-	scene.add(axisHelper);
-}
+// TODO moving all the code into the mapper class
 
-let modelDataCache = {};
 
-function loadModelData(modelName) {
-	// TODO change this to cache the promise function, ATM we are making multiple requests to the same file.
 
-	if (modelDataCache.hasOwnProperty(modelName)) {
-		return modelDataCache[modelName];
-	}
-
-	let request = $.getJSON('/models/' + modelName + '.json').then(function (modelData) {
-		if (modelData.parent) {
-			return loadModelData(modelData.parent).then(function (parentModel) {
-				let combinedModelData = $.extend(true, {}, parentModel, modelData);
-				return combinedModelData;
-			});
-		}
-		else {
-			return modelData;
-		}
-	});
-	modelDataCache[modelName] = request;
-
-	return request;
-}
-
-function getFaceData(modelData) {
-	if (!modelData.textures || !modelData.elements) {
-		console.error("missing modelData. Expecting textures and elements: ", modelData);
-	}
-
-	let faces = {};
-
-	modelData.elements.forEach(function (element) {
-		Object.keys(element.faces).forEach(function (faceName) {
-			if (!faces.hasOwnProperty(faceName)) {
-				faces[faceName] = [];
-			}
-			let face = element.faces[faceName];
-			let textureName = face.texture.replace(/^#/, '');
-			face.texturePath = modelData.textures[textureName] || modelData.textures['all'];
-			while (face.texturePath.match(/^#/)) {
-				face.texturePath = modelData.textures[face.texturePath.replace(/^#/, '')];
-			}
-			faces[faceName].push(face);
-
-		});
-	});
-
-	return faces;
-}
-
-let faceCache = {};
-
-function renderFace(face, textureMap, block) {
-	let baseColor;
-	let cacheKey = [block.name, face[0].texturePath, block.biome.name].join('|');
-
-	if (faceCache[cacheKey]) {
-		return faceCache[cacheKey];
-	}
-
-	if (face.length === 1) {
-		baseColor = face[0].hasOwnProperty('tintindex') ? Textures.getTintColour(block) : 0xffffff;
-		faceCache[cacheKey] = new THREE.MeshBasicMaterial({
-			color: baseColor,
-			map: textureMap[face[0].texturePath],
-			alphaTest: 0.5,
-			side: THREE.DoubleSide
-		});
-		return faceCache[cacheKey];
-	}
-	else if (face.length > 1) {
-		let faceLayerList = [];
-		face.forEach(function (faceLayer) {
-			let texture;
-			if (faceLayer.hasOwnProperty('tintindex')) {
-				texture = Textures.generateTintedTexture(faceLayer.texturePath,
-					textureMap[faceLayer.texturePath],
-					Textures.getTintColour(block));
-			}
-			else {
-				texture = textureMap[faceLayer.texturePath];
-			}
-			faceLayerList.push(texture);
-		});
-		faceCache[cacheKey] = new THREE.MeshBasicMaterial({
-			color: 0xffffff,
-			map: new LayeredTexture(faceLayerList),
-			alphaTest: 0,
-			side: THREE.DoubleSide
-		});
-		return faceCache[cacheKey];
-	}
-}
-
-let materialCache = {};
-function generateBlockMaterials(faceData, textureMap, block) {
-	let materialKey = [block.name, block.metadata, block.biome.name].join('|');
-
-	if (!materialCache[materialKey]) {
-		var materials = [
-			renderFace(faceData.east, textureMap, block), // right, east
-			renderFace(faceData.west, textureMap, block), // left, west
-			renderFace(faceData.up, textureMap, block), // top
-			renderFace(faceData.down, textureMap, block), // bottom
-			renderFace(faceData.south, textureMap, block), // back, south
-			renderFace(faceData.north, textureMap, block)  // front, north
-		];
-		materialCache[materialKey] = new THREE.MultiMaterial(materials);
-		materialCache[materialKey].key = materialKey;
-	}
-
-	return materialCache[materialKey];
-}
-
-let waterCache = {};
-function generateWaterBlockMaterial(blockData) {
-	let biomeType = blockData.biome.id;
-
-	if (!waterCache[biomeType]) {
-		waterCache[biomeType] = Textures.loadTextureAsync('textures/blocks/water_still.png').then(function (waterTexture) {
-
-			return new THREE.MeshBasicMaterial({
-				color: 0xffffff,
-				map: waterTexture,
-				opacity: 0.8,
-				transparent: true
-			});
-		});
-	}
-
-	return waterCache[biomeType];
-}
 
 function addBlockList(blocks) {
 	blocks.forEach(function (blockData) {
@@ -201,163 +137,36 @@ function addBlockList(blocks) {
 	});
 }
 
-let meshByMaterial = {};
-window.MeshByMatrial = meshByMaterial;
-
-function addToScene(geometry, material) {
-	const materialKey = material.key || material.uuid;
-
-	if (meshByMaterial[materialKey]) {
-		let geom = meshByMaterial[materialKey].geometry;
-		geom.merge(geometry);
-
-		geom.elementsNeedUpdate = true;
-		geom.verticesNeedUpdate = true;
-		geom.uvsNeedUpdate = true;
-		geom.normalsNeedUpdate = true;
-		geom.colorsNeedUpdate = true;
-		geom.lineDistancesNeedUpdate = true;
-		geom.groupsNeedUpdate = true;
-		geom.computeBoundingSphere();
-	}
-	else {
-		let mesh = new THREE.Mesh(geometry, material);
-		meshByMaterial[materialKey] = mesh;
-		scene.add(mesh);
-	}
-}
-
-function addBlockData(blockData) {
-	let block = blockData.block;
-	let biome = block.biome;
-	let blockModel,
-		blockFaces,
-		blockTextures;
-
-	if (block.type === 8 || block.type === 9) {
-		return addWaterBlock(blockData);
-	}
-
-	BlockState.loadBlockStates(block).then(function (variant) {
-		return loadModelData('block/' + variant.model);
-	}).catch(function (blockError) {
-		console.error('Error loading block: ', block.name, blockData, blockError);
-	}).then(function (modelDataResponse) {
-		blockModel = modelDataResponse;
-		blockFaces = getFaceData(modelDataResponse);
-		let texturePathsList = Textures.getTexturesForBlock(blockFaces);
-		return Textures.loadTextureListAsync('textures/', texturePathsList);
-	}).then(function (textureList) {
-		// TODO merge geometries see http://learningthreejs.com/blog/2011/10/05/performance-merging-geometry/
-		blockTextures = textureList;
-		if (blockFaces.up && blockFaces.down) {
-			let {geometry, material} = buildStandardBlock(blockData, blockModel, blockFaces, textureList, biome);
-			addToScene(geometry, material);
-		}
-		else {
-			// It's probably a cross shape
-			let {geometry, material} = buildCrossBlock(blockData, blockFaces, textureList);
-			addToScene(geometry, material);
-		}
-
-	});
-}
-
-function buildStandardBlock(blockData, blockModel, blockFaces, textureList) {
-
-	const pos = blockData.position;
-	const elementData = blockModel.elements[0];
-	let geometrySizes = {
-		x: (elementData.to[0] - elementData.from[0]) / 16,
-		y: (elementData.to[1] - elementData.from[1]) / 16,
-		z: (elementData.to[2] - elementData.from[2]) / 16
-	};
-	let heightCorrection = (1 - geometrySizes.y) / 2;
-
-	let geometry = new THREE.BoxGeometry(geometrySizes.x, geometrySizes.y, geometrySizes.z);
-	geometry.translate(pos[0], pos[1] - heightCorrection, pos[2]);
-	let materials = generateBlockMaterials(blockFaces, textureList, blockData.block);
-
-	return {
-		geometry: geometry,
-		material: materials
-	};
-}
-
-function buildCrossBlock(blockData, blockFaces, textureList) {
-	let material = renderFace(blockFaces.east, textureList, blockData.block);
-	const pos = blockData.position;
-	let nsGeom = new THREE.PlaneGeometry(1, 1);
-	let ewGeom = new THREE.PlaneGeometry(1, 1);
-	nsGeom.rotateY(1.5708);
-
-	nsGeom.merge(ewGeom);
-	nsGeom.translate(pos[0], pos[1], pos[2]);
-	return {
-		geometry: nsGeom,
-		material: material
-	};
-}
-
-function addWaterBlock(blockData) {
-	let pos = blockData.position;
-
-	return generateWaterBlockMaterial(blockData.block).then(waterMaterial => {
-		let geometry = new THREE.BoxGeometry(1, 1, 1);
-		geometry.translate(pos[0], pos[1], pos[2]);
-		let cube = new THREE.Mesh(geometry, waterMaterial);
-		scene.add(cube);
-		cube.data = blockData;
-	});
-}
 
 function generateCubesAsync() {
-	var dist = 10;
+	let dist = 4;
+	// let origin = [0,0];
+	let origin = [0, 0];
+	let camHeight = 75;
+	let camOffset = [10, 10, 10];
 
-	return new Promise(function(resolve, reject){
-		var x=0, y=0, z = 0;
+	// todo find the y pos of the origin block
 
-		for (x=-15; x<=-5; x++) {
-			for (z=-15; z<=-5; z++) {
-				requestBlocks(x, z);
-			}
+	let x, z = 0;
+
+	for (x = origin[0] - dist; x <= origin[0] + dist; x++) {
+		for (z = origin[1] - dist; z <= origin[1] + dist; z++) {
+			requestBlocks(x, z);
 		}
-		positionCamera([10, 72, 10], [0, 62, 0]);
+	}
+	mapper.positionCamera([origin[0] + camOffset[0], camHeight + camOffset[1], origin[1] + camOffset[2]],
+		[origin[0], camHeight, origin[1]]);
 
-		// For testing a single block
-		// requestBlocks(-7, -11);
-		// positionCamera([10, 72, 10], [-7, 62, -11]);
+	// For testing a single block
+	// requestBlock(78,105,308);
+	// positionCamera([88,115,318], [78,105,308]);
 
-		resolve();
-	});
 }
 
-
-let cameraControls = new OrbitControls(camera, renderer.domElement, scene);
-cameraControls.userPanSpeed = 1.0;
-cameraControls.onObjectSelected = onObjectSelected;
 
 function onObjectSelected(intersected) {
 	console.log(intersected.object.data);
 }
 
-// todo change args to lookAt, offset
-function positionCamera(cameraPos, targetPos) {
-	cameraControls.cameraObject.position.x = cameraPos[0];
-	cameraControls.cameraObject.position.y = cameraPos[1];
-	cameraControls.cameraObject.position.z = cameraPos[2];
-	cameraControls.center = new THREE.Vector3(targetPos[0], targetPos[1], targetPos[2]);
-	cameraControls.update();
-	addAxisLines(targetPos);
-}
-
-generateCubesAsync().then(function () {
-	render();
-});
-
-let render = function () {
-	requestAnimationFrame(render);
-
-	cameraControls.update();
-	renderer.render(scene, camera);
-};
+generateCubesAsync();
+mapper.start();

@@ -1,6 +1,6 @@
 import * as THREE from "three";
 
-import { CameraController } from "../CameraController";
+import { CameraController } from "./CameraController";
 
 class SceneRenderer {
 	constructor() {
@@ -14,16 +14,20 @@ class SceneRenderer {
 
 		this.addAxisLines([0, 0, 0]);
 
-		this.cameraControls.positionCamera([10, 10, 10]);
-		this.cameraControls.lookAt([0, 0, 0]);
+		this.positionCamera([10, 10, 10], [0, 0, 0]);
 	}
 
-	addAxisLines(pos) {
+	addAxisLines(pos = [0,0,0]) {
 		let axisHelper = new THREE.AxisHelper(10);
 		axisHelper.translateX(pos[0]);
 		axisHelper.translateY(pos[1]);
 		axisHelper.translateZ(pos[2]);
 		this.scene.add(axisHelper);
+	}
+
+	positionCamera(pos, target) {
+		this.cameraControls.positionCamera(pos);
+		this.cameraControls.lookAt(target);
 	}
 
 	render() {
