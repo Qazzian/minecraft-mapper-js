@@ -27,6 +27,8 @@ class Mapper {
 
 		this.blockRenderer = new BlockRenderer();
 
+		this.meshByMaterial = {};
+		this.meshByChunk = {};
 		if (debugMode) {
 			this.addDebugObjects();
 		}
@@ -48,7 +50,9 @@ class Mapper {
 // TODO use a webWorker to process the block data queue and add elements to the scene
 	addBlockData(blockData) {
 		this.blockRenderer.render(blockData).then(modelData => {
-			this.addToScene(modelData.geometry, modelData.material);
+			modelData.block = blockData.block;
+			modelData.position = blockData.position;
+			this.addToScene(modelData);
 		});
 	}
 
@@ -62,11 +66,18 @@ class Mapper {
 		});
 	}
 
-	addToScene(geometry, material) {
+	addToScene(modelData) {
+		return this.addByMaterial(modelData);
+	}
+
+	addByMaterial (modelData) {
+		const geometry = modelData.geometry;
+		const material = modelData.material;
+
 		const materialKey = material.key || material.uuid;
 
-		if (meshByMaterial[materialKey]) {
-			let geom = meshByMaterial[materialKey].geometry;
+		if (this.meshByMaterial[materialKey]) {
+			let geom = this.meshByMaterial[materialKey].geometry;
 			geom.merge(geometry);
 
 			geom.elementsNeedUpdate = true;
@@ -80,16 +91,35 @@ class Mapper {
 		}
 		else {
 			let mesh = new THREE.Mesh(geometry, material);
-			meshByMaterial[materialKey] = mesh;
-			scene.add(mesh);
+			this.meshByMaterial[materialKey] = mesh;
+			this.scene.add(mesh);
 		}
 	}
 
+	addByChunck (modelData) {
+		const position = modelData.position;
+		const geometry = modelData.geometry;
+		const material = modelData.material;
+
+		const chunkX = Math.floor(modelData.position[0] / 16);
+		const chunkZ = Math.floor(modelData.position[2] / 16);
+		const chunkKey = `chunk-${chunkX}-${chunkZ}`;
+
+		if (this.meshByChunk[chunkKey]) {
+			// TODO do merge
+		}
+		else {
+			// TODO new mesh
+		}
+		/*
+		 The X of chunk will be Floor( X coordinate / 16 )
+		 The Z of chunk will be Floor( Z coordinate / 16 )
+
+		 TODO
+		 */
+	}
+
 }
-
-
-let meshByMaterial = {};
-window.MeshByMatrial = meshByMaterial;
 
 
 const mapper = new Mapper();
