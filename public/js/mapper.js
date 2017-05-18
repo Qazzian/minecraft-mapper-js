@@ -1,10 +1,11 @@
 
-import io from "socket.io";
+
 import * as THREE from "three";
 
 
 import { SceneRenderer } from "SceneRenderer";
 import { BlockRenderer } from "BlockRenderer";
+import { QazzianMapServer } from "mapInterfaces/QazzianMapServer";
 
 "use strict";
 
@@ -22,6 +23,15 @@ const debugMode = false;
 
 class Mapper {
 	constructor() {
+		// The co-ords to start looking at
+		this.origin = [0, 75, 0];
+		// How far to render the map from the origin
+		this.dist = 4;
+		this.camOffset = [10, 10, 10];
+
+		this.mapInterface = new QazzianMapServer({
+			onBlockReceived: (blockData) => {this.addBlockData(blockData);}
+		});
 		this.sceneRenderer = new SceneRenderer();
 		this.scene = this.sceneRenderer.scene;
 
@@ -29,22 +39,46 @@ class Mapper {
 
 		this.meshByMaterial = {};
 		this.meshByChunk = {};
+
 		if (debugMode) {
-			this.addDebugObjects();
+			this.addDebugObjects(this.origin);
 		}
 	}
 
 	start() {
+		this.requestMapData();
+		this.lookAt(this.origin);
 		this.sceneRenderer.animate();
 	}
 
-	addDebugObjects() {
+	addDebugObjects(pos) {
 		sceneRenderer.addAxisLines(pos);
+	}
+
+	lookAt(position, offset = this.camOffset) {
+
+		this.sceneRenderer.positionCamera([position[0] + offset[0], position[1] + offset[1], position[2] + offset[2]],
+			[position[0], position[1], position[2]]);
 	}
 
 	positionCamera(cameraPos, targetPos) {
 		console.info('pos cam', cameraPos, targetPos);
 		this.sceneRenderer.positionCamera(cameraPos, targetPos);
+	}
+
+	requestMapData() {
+		let dist = this.dist;
+		let origin = this.origin;
+
+		// todo find the y pos of the origin block
+
+		let x, z = 0;
+
+		for (x = origin[0] - dist; x <= origin[0] + dist; x++) {
+			for (z = origin[2] - dist; z <= origin[2] + dist; z++) {
+				this.mapInterface.requestTopBlock(x, z);
+			}
+		}
 	}
 
 // TODO use a webWorker to process the block data queue and add elements to the scene
@@ -121,82 +155,10 @@ class Mapper {
 
 }
 
-
 const mapper = new Mapper();
-// mapper.start();
-
-let scene = mapper.scene;
-
-let socket = io(window.location.href);
-// let socket = io('http://www.qazzian.com:3000/');
-
-socket.on('connect', function () {
-});
-
-socket.on('blockData', function (data) {
-	// TODO add block data to a queue
-	mapper.addBlockData(data);
-});
-socket.on('blockList', function (data) {
-	mapper.addBlockList(data);
-});
-socket.on('disconnect', function () {
-});
-
-function requestBlocks(x, z) {
-	socket.emit('blockRequest', {x: x, z: z}, function (blockData) {
-	});
-}
-function requestBlock(x, y, z) {
-	socket.emit('blockRequest', {x: x, y: y, z: z}, function (blockData) {
-	});
-}
-
-// TODO moving all the code into the mapper class
-
-
-
-
-function addBlockList(blocks) {
-	blocks.forEach(function (blockData) {
-		if (blockData.block.type !== 0) {
-			setTimeout(function () {
-				addBlockData(blockData);
-			}, 0);
-		}
-	});
-}
-
-
-function generateCubesAsync() {
-	let dist = 4;
-	// let origin = [0,0];
-	let origin = [0, 0];
-	let camHeight = 75;
-	let camOffset = [10, 10, 10];
-
-	// todo find the y pos of the origin block
-
-	let x, z = 0;
-
-	for (x = origin[0] - dist; x <= origin[0] + dist; x++) {
-		for (z = origin[1] - dist; z <= origin[1] + dist; z++) {
-			requestBlocks(x, z);
-		}
-	}
-	mapper.positionCamera([origin[0] + camOffset[0], camHeight + camOffset[1], origin[1] + camOffset[2]],
-		[origin[0], camHeight, origin[1]]);
-
-	// For testing a single block
-	// requestBlock(78,105,308);
-	// positionCamera([88,115,318], [78,105,308]);
-
-}
-
 
 function onObjectSelected(intersected) {
 	console.log(intersected.object.data);
 }
 
-generateCubesAsync();
 mapper.start();
