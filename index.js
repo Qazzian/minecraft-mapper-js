@@ -1,134 +1,201 @@
-var path = require('path');
+const fs = require('fs');
+const path = require('path');
 
 // Web server libraries
 const express = require('express');
 const http = require('http');
-// const url = require('url');
 const WebSocket = require('socket.io');
 
-
 // Minecraft libraries
-var World = require('prismarine-world')("1.11.2");
-var mcData=require("minecraft-data")("1.11.2");
-var Vec3 = require('vec3');
+const nbt = require('prismarine-nbt');
+const worldFactory = require('prismarine-world');
+const mcDataFactory = require("minecraft-data");
+const Vec3 = require('vec3');
 
-var regionPath = path.join(__dirname, "/map/region");
+// const maxLevelHeight = mcData.type === 'pe' ? 128 : 255;
 
-var world = new World(null, regionPath);
+const MOVEMENT = {
+	DOWN: new Vec3(0, -1, 0)
+};
 
-var cols = world.getColumns();
+class MapDataServer {
+	constructor(mapID) {
+		this.mapDir = path.join(__dirname, "/map/", mapID);
+		this.initWebServer();
+		this.initMapServer();
 
+		this.dataService = null;
+		this.mapInstance = null;
+	}
 
-// Setup the websocket server
-// Express
-const app = express();
-const server = http.createServer(app);
-//Websocket
-var io = WebSocket(server);
-io.on('connection', function(client){
-	console.log('Socket.IO connection established');
+	initWebServer() {
+		// Setup the websocket server
+		// Express
+		this.app = express();
+		this.server = http.createServer(this.app);
+		this.io = WebSocket(this.server);
+		this.initSocketHandlers(this.io);
 
-	client.on('blockRequest', function(data){
-		// console.log('blockRequest: ', data);
+		// Setup static routes
+		this.app.use(express.static(path.join(__dirname, 'public')));
+		this.app.use('/js/lib/steal', express.static(path.join(__dirname, 'node_modules/steal')));
+
+		this.server.listen(3000, function () {
+			console.log('listening on port 3000!')
+		});
+	}
+
+	initSocketHandlers(ioServer) {
+		const self = this;
+		ioServer.on('connection', client => {
+			console.info('connected');
+			client.on('blockRequest', (requestData) => {
+				console.info('block request: ', requestData);
+				return self.onBlockRequest(client, requestData);
+			});
+		});
+	}
+
+	initMapServer() {
+		const regionPath = path.join(this.mapDir, 'region');
+
+		let World,
+			dataService,
+			mapInstance;
+
+		return this.getMcVersionFromMapData(this.mapDir).then((versionString) => {
+			console.info('map version: ', versionString);
+			World = worldFactory(versionString);
+			this.dataService = mcDataFactory(versionString);
+			this.mapInstance = new World(null, regionPath);
+		}).catch((err) => {
+			console.error(err);
+		});
+	}
+
+	getMcVersionFromMapData(mapDir) {
+		return new Promise((resolve, reject) => {
+			fs.readFile(path.join(mapDir, "/level.dat"), function (error, data) {
+				if (error) throw error;
+
+				nbt.parse(data, function (error, data) {
+					try {
+						const versionString = data.value.Data.value.Version.value.Name.value;
+						resolve(versionString);
+					}
+					catch (err) {
+						console.error('ERROR getting version string from map data', err);
+						reject(err);
+					}
+				});
+			});
+		});
+	}
+
+	onBlockRequest(client, requestData) {
+
+		const self = this;
+		console.log('blockRequest: ', requestData);
+		const data = requestData;
+
 		if (data.hasOwnProperty('x') && data.hasOwnProperty('y') && data.hasOwnProperty('z')) {
-			getBlock(data.x, data.y, data.z).then(function(blockData){
-				sendBlock(blockData, client);
+			let vec = new Vec3(data.x, data.y, data.z);
+			this.getBlock(vec).then((blockData) => {
+				console.info('send block 1: ', blockData);
+				self.sendBlock(blockData, client);
+			}).catch((err) => {
+				console.error('Error getting block data: ', err);
 			});
 
 		}
 		else if (data.hasOwnProperty('x') && data.hasOwnProperty('z')) {
-			var block = getHighestBlock(data.x, 255, data.z).then(function(blockData) {
-				sendBlock(blockData, client);
+			console.info('get highest block');
+			this.getHighestBlock(data.x, 255, data.z).then((blockData) => {
+				console.info('send block 2: ', blockData);
+				self.sendBlock(blockData, client);
 
-				nextPos = [blockData.position[0], blockData.position[1]-1, blockData.position[2]];
-				getBlocksYDeep(nextPos, 2).then(function(blockList){
-					client.emit('blockList', blockList);
-				}).catch(function(error){
-					console.info('ERROR: ', error);
-				});
+				// console.info('get the next few blocks down');
+				// let nextPos = blockData.position.add(MOVEMENT.DOWN);
+				// this.getBlocksYDeep(nextPos, 2).then(function (blockList) {
+				// 	console.info('emit block list');
+				// 	client.emit('blockList', blockList);
+				// }).catch(function (error) {
+				// 	console.info('ERROR: ', error);
+				// });
+			}).catch(err => {
+				console.error('Error getting block data: ', err);
 			});
 		}
 		else {
 			// TODO operation not defined
+			console.info('blockRequest operation not defined');
 		}
-	});
-
- });
-server.listen(3000, function () {
-  console.log('listening on port 3000!')
-});
-
-// Setup static routes
-app.use(express.static(path.join(__dirname, 'public')));
-app.use('/js/lib/steal', express.static(path.join(__dirname, 'node_modules/steal')));
-
-// TODO loop until we find first non-air block (block.type != 0)
-
-function getHighestBlock(xPos, nextYPos, zPos) {
-	// nextYPos = nextYPos || 255;
-	if (nextYPos < 0) {
-		throw new Error('No blocks found at x:', xPos, ', z:', zPos);
 	}
 
-	return world.getBlock(new Vec3(xPos,nextYPos,zPos))
-		.then(function(blockData){
-			if (blockData.type === 0) {
-				return getHighestBlock(xPos, nextYPos -1, zPos);
-			}
-			else return {block: blockData, position: [xPos, nextYPos, zPos]};
-	});
-}
+	getHighestBlock(xPos, nextYPos, zPos) {
+		// nextYPos = nextYPos || 255;
+		if (nextYPos < 0) {
+			throw new Error('No blocks found at x:', xPos, ', z:', zPos);
+		}
 
-function getBlocksYDeep(pos, depth) {
-	var y,
-		// endY = Math.max(pos[1] - depth, 0),
-		blockRequests = [];
+		return this.getBlock(new Vec3(xPos, nextYPos, zPos))
+			.then(blockData => {
+				if (blockData.block.type === 0) {
+					return this.getHighestBlock(xPos, nextYPos - 1, zPos);
+				}
+				else {
+					return blockData;
+				}
+			}).catch(err => {
+				console.error(err);
+			});
+	}
 
-	for (y = pos[1]; blockRequests.length<=depth; y--) {
-		// TODO skip air blocks
-		let req = getBlock(pos[0], y, pos[2]).then(function(blockData){
-			var block = addBlockAttributes(blockData.block);
-			blockData.block = block;
-			return blockData;
+	getBlocksYDeep(pos, depth) {
+		// const finalPos = pos.minus(new Vec3(0, depth, 0));
+		let nextPos = pos.clone(),
+			blockRequests = [];
+
+		do {
+			nextPos = nextPos.minus(MOVEMENT.DOWN);
+
+			let req = this.getBlock(nextPos).then((blockData) => {
+				let block = this.addBlockAttributes(blockData.block);
+				blockData.block = block;
+				return blockData;
+			}).catch(err => {
+				console.error(err);
+			});
+
+			blockRequests.push(req);
+
+		} while (nextPos.y >= pos.y - depth);
+
+		return Promise.all(blockRequests);
+	}
+
+	sendBlock(blockData, client) {
+		this.addBlockAttributes(blockData.block);
+		console.info('Emit vlock to client: ', blockData);
+		client.emit('blockData', blockData);
+	}
+
+	getBlock(vec3) {
+		return this.mapInstance.getBlock(vec3).then(block => {
+			return {block: block, position: vec3};
+		}).catch(err => {
+			console.error('Error finding block data:', err);
 		});
-		blockRequests.push(req);
-
 	}
 
-	return Promise.all(blockRequests);
+	// TODO this is mutating the parameter
+	addBlockAttributes(block) {
+		let extraData = this.dataService.blocks[block.type];
+		block.transparent = extraData.transparent;
+		return block;
+	}
+
 }
 
-function sendBlock(blockData, client) {
-	var block = addBlockAttributes(blockData.block);
-	client.emit('blockData', {block: block, position: blockData.position});
-}
-
-function getBlock(x, y, z) {
-	return world.getBlock(new Vec3(x,y,z)).then(function(blockData){
-		return {block: blockData, position: [x, y, z]};
-	});
-}
-
-function addBlockAttributes(block) {
-	var extraData = mcData.blocks[block.type];
-	block.transparent = extraData.transparent;
-	return block;
-}
-
-getHighestBlock(0, 255, 0).then(function(highestBlock){
-	addBlockAttributes(highestBlock.block);
-	console.log('highestBlock:', JSON.stringify(highestBlock, null, 4));
-});
-
-// world.getBlock(new Vec3(0,yPos,0))
-//   .then(function(block){
-//     console.log('BLOCK: ', JSON.stringify(block,null,2));
-//   })
-//   .then(function(){
-//     world.stopSaving();
-//     process.exit();
-//   })
-//   .catch(function(err){
-//     console.log(err.stack);
-//   });
-
+var mapServer = new MapDataServer('Qazzian1');
+// var mapServer = new MapDataServer('abe');
