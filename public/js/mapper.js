@@ -24,7 +24,7 @@ const debugMode = false;
 class Mapper {
 	constructor() {
 		// The co-ords to start looking at
-		this.origin = [0, 75, 0];
+		this.origin = [0, 62, 0];
 		// How far to render the map from the origin
 		this.dist = 4;
 		this.camOffset = [10, 10, 10];
@@ -40,9 +40,8 @@ class Mapper {
 		this.meshByMaterial = {};
 		this.meshByChunk = {};
 
-		if (debugMode) {
 			this.addDebugObjects(this.origin);
-		}
+			this.lookAt(this.origin);
 	}
 
 	start() {
@@ -52,7 +51,7 @@ class Mapper {
 	}
 
 	addDebugObjects(pos) {
-		sceneRenderer.addAxisLines(pos);
+		this.sceneRenderer.addAxisLines(pos);
 	}
 
 	lookAt(position, offset = this.camOffset) {
@@ -155,10 +154,12 @@ class Mapper {
 
 }
 
-const mapper = new Mapper();
+const mapper = window.mapper = new Mapper();
 
 function onObjectSelected(intersected) {
 	console.log(intersected.object.data);
 }
 
 mapper.start();
+
+mapper.lookAt([0,62, 0])

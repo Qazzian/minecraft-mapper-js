@@ -195,7 +195,7 @@ function buildStandardBlock(blockData, blockModel, blockFaces, textureList) {
 	let heightCorrection = (1 - geometrySizes.y) / 2;
 
 	let geometry = new THREE.BoxGeometry(geometrySizes.x, geometrySizes.y, geometrySizes.z);
-	geometry.translate(pos[0], pos[1] - heightCorrection, pos[2]);
+	geometry.translate(pos.x, pos.y - heightCorrection, pos.z);
 	let materials = generateBlockMaterials(blockFaces, textureList, blockData.block);
 
 	return {
@@ -212,7 +212,7 @@ function buildCrossBlock(blockData, blockFaces, textureList) {
 	nsGeom.rotateY(1.5708);
 
 	nsGeom.merge(ewGeom);
-	nsGeom.translate(pos[0], pos[1], pos[2]);
+	nsGeom.translate(pos.x, pos.y, pos.z);
 	return {
 		geometry: nsGeom,
 		material: material
@@ -224,7 +224,7 @@ function addWaterBlock(blockData) {
 
 	return generateWaterBlockMaterial(blockData.block).then(waterMaterial => {
 		let geometry = new THREE.BoxGeometry(1, 1, 1);
-		geometry.translate(pos[0], pos[1], pos[2]);
+		geometry.translate(pos.x, pos.y, pos.z);
 		let cube = new THREE.Mesh(geometry, waterMaterial);
 		scene.add(cube);
 		cube.data = blockData;
