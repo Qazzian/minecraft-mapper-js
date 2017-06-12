@@ -54,6 +54,10 @@ class MapDataServer {
 				console.info('block request: ', requestData);
 				return self.onBlockRequest(client, requestData);
 			});
+			client.on('requestArea', (requestData) => {
+				console.info('Area request: ', requestData);
+				return self.onAreaRequest(client, requestData);
+			});
 		});
 	}
 
@@ -146,6 +150,45 @@ class MapDataServer {
 		}
 	}
 
+	/**
+	 * send a stream of visible blocks within the given area
+	 *
+	 * @param client
+	 * @param {object} requestData - set of north, south, east, west points on the map.
+	 * @param {int} requestData.north - most northerly point (smallest z coord)
+	 * @param {int} requestData.south - most southerly point (largest z coord)
+	 * @param {int} requestData.east - largest x coord
+	 * @param {int} requestData.west - smallest x coord
+	 */
+	onAreaRequest(client, requestData) {
+		let x = requestData.west,
+			z = requestData.north;
+		const xMax = requestData.east,
+			zMax = requestData.south;
+
+		console.info('Area request: ', x, xMax, z, zMax);
+		for (; x <= xMax; x++) {
+			z = requestData.north;
+			console.info('outer loop', x, xMax);
+			for (; z <= zMax; z++) {
+				console.info('inner loop', z, zMax);
+				this.sendVisibleInColumn(client, x, this.yMax, z);
+			}
+		}
+		console.info('Loops done: ', x, z);
+	}
+
+	sendVisibleInColumn(client, x, yMax, z) {
+		setTimeout(()=> {
+			this.getHighestBlock(x, yMax, z).then(blockData => {
+				this.sendBlock(blockData, client);
+				if (this.isBlockTransparent(blockData.block)) {
+					this.sendVisibleInColumn(client, x, blockData.position.y - 1, z);
+				}
+			});
+		}, 10);
+	}
+
 	getHighestBlock(xPos, nextYPos, zPos) {
 		// nextYPos = nextYPos || 255;
 		if (nextYPos < 0) {
@@ -174,8 +217,6 @@ class MapDataServer {
 			nextPos = nextPos.minus(MOVEMENT.DOWN);
 
 			let req = this.getBlock(nextPos).then((blockData) => {
-				let block = this.addBlockAttributes(blockData.block);
-				blockData.block = block;
 				return blockData;
 			}).catch(err => {
 				console.error(err);
@@ -189,17 +230,26 @@ class MapDataServer {
 	}
 
 	sendBlock(blockData, client) {
-		this.addBlockAttributes(blockData.block);
-		console.info('Emit vlock to client: ', blockData);
+		console.info('Emit block to client: ', blockData.position);
 		client.emit('blockData', blockData);
 	}
 
 	getBlock(vec3) {
 		return this.mapInstance.getBlock(vec3).then(block => {
+			this.addBlockAttributes(block);
 			return {block: block, position: vec3};
 		}).catch(err => {
 			console.error('Error finding block data:', err);
 		});
+	}
+
+	isBlockTransparent(block) {
+		if (block.hasOwnProperty('transparent')) {
+			return block.transparent;
+		}
+		else {
+			return this.dataService.blocks[block.type].transparent;
+		}
 	}
 
 	// TODO this is mutating the parameter

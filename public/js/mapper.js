@@ -24,9 +24,9 @@ const debugMode = false;
 class Mapper {
 	constructor() {
 		// The co-ords to start looking at
-		this.origin = [0, 62, 0];
+		this.origin = [10, 100, 360];
 		// How far to render the map from the origin
-		this.dist = 4;
+		this.dist = 10;
 		this.camOffset = [10, 10, 10];
 
 		this.mapInterface = new QazzianMapServer({
@@ -40,8 +40,10 @@ class Mapper {
 		this.meshByMaterial = {};
 		this.meshByChunk = {};
 
+		// if (debugMode) {
 			this.addDebugObjects(this.origin);
 			this.lookAt(this.origin);
+		// }
 	}
 
 	start() {
@@ -69,19 +71,15 @@ class Mapper {
 		let dist = this.dist;
 		let origin = this.origin;
 
-		// todo find the y pos of the origin block
+		let x = this.origin[0] || 0,
+			z = this.origin[2] || 0;
 
-		let x, z = 0;
-
-		for (x = origin[0] - dist; x <= origin[0] + dist; x++) {
-			for (z = origin[2] - dist; z <= origin[2] + dist; z++) {
-				this.mapInterface.requestTopBlock(x, z);
-			}
-		}
+		this.mapInterface.requestArea(x-dist, x+dist, z-dist, z+dist);
 	}
 
 // TODO use a webWorker to process the block data queue and add elements to the scene
 	addBlockData(blockData) {
+		console.info('addBlockData: ', blockData);
 		this.blockRenderer.render(blockData).then(modelData => {
 			modelData.block = blockData.block;
 			modelData.position = blockData.position;
@@ -125,6 +123,7 @@ class Mapper {
 		else {
 			let mesh = new THREE.Mesh(geometry, material);
 			this.meshByMaterial[materialKey] = mesh;
+			console.info('Add Mesh to scene: ', mesh);
 			this.scene.add(mesh);
 		}
 	}
@@ -140,6 +139,7 @@ class Mapper {
 
 		if (this.meshByChunk[chunkKey]) {
 			// TODO do merge
+			// The merge here is going to be more complicated as the materials won't all match up.
 		}
 		else {
 			// TODO new mesh
@@ -161,5 +161,3 @@ function onObjectSelected(intersected) {
 }
 
 mapper.start();
-
-mapper.lookAt([0,62, 0])
