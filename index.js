@@ -26,6 +26,7 @@ class MapDataServer {
 
 		this.dataService = null;
 		this.mapInstance = null;
+		this.yMax = 255; // sane default, overwritten by initMapServer
 	}
 
 	initWebServer() {
@@ -59,17 +60,30 @@ class MapDataServer {
 	initMapServer() {
 		const regionPath = path.join(this.mapDir, 'region');
 
-		let World,
-			dataService,
-			mapInstance;
-
-		return this.getMcVersionFromMapData(this.mapDir).then((versionString) => {
+		this.getMapMetaData(this.mapDir).then(metaData => {
+			this.metaData = metaData;
+			const versionString = metaData.value.Data.value.Version.value.Name.value;
 			console.info('map version: ', versionString);
-			World = worldFactory(versionString);
+			const World = worldFactory(versionString);
 			this.dataService = mcDataFactory(versionString);
 			this.mapInstance = new World(null, regionPath);
 		}).catch((err) => {
 			console.error(err);
+		});
+	}
+
+	getMapMetaData(mapDir) {
+		return new Promise((resolve, reject) => {
+			fs.readFile(path.join(mapDir, "/level.dat"), function (error, data) {
+				if (error) throw error;
+
+				nbt.parse(data, function (error, data) {
+					if (error) {
+						return reject(error);
+					}
+					resolve(data);
+				});
+			});
 		});
 	}
 
