@@ -20,7 +20,7 @@ class BlockRenderer {
 			blockTextures;
 
 		if (block.type === 8 || block.type === 9) {
-			return addWaterBlock(blockData);
+			return buildWaterBlock(blockData);
 		}
 
 		return BlockState.loadBlockStates(block).then(function (variant) {
@@ -219,14 +219,15 @@ function buildCrossBlock(blockData, blockFaces, textureList) {
 	};
 }
 
-function addWaterBlock(blockData) {
+function buildWaterBlock(blockData) {
 	let pos = blockData.position;
 
 	return generateWaterBlockMaterial(blockData.block).then(waterMaterial => {
 		let geometry = new THREE.BoxGeometry(1, 1, 1);
 		geometry.translate(pos.x, pos.y, pos.z);
-		let cube = new THREE.Mesh(geometry, waterMaterial);
-		scene.add(cube);
-		cube.data = blockData;
+		return {
+			geometry: geometry,
+			material: waterMaterial
+		};
 	});
 }
