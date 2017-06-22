@@ -6,6 +6,9 @@ const express = require('express');
 const http = require('http');
 const WebSocket = require('socket.io');
 
+const webpack = require('webpack');
+const webpackMiddleware = require("webpack-dev-middleware");
+
 // Minecraft libraries
 const nbt = require('prismarine-nbt');
 const worldFactory = require('prismarine-world');
@@ -37,9 +40,19 @@ class MapDataServer {
 		this.io = WebSocket(this.server);
 		this.initSocketHandlers(this.io);
 
+		// TODO DEVELOPMENT ONLY FOR WEBPACK
+		this.app.use(webpackMiddleware(webpack({
+			entry: './public/js/mapper.js',
+			output: {
+				filename: 'mapper.bundle.js',
+				path: path.join(__dirname, 'public/js_dist')
+			}
+		}),{
+			publicPath: '/public/js_dist/',
+		}));
+
 		// Setup static routes
 		this.app.use(express.static(path.join(__dirname, 'public')));
-		this.app.use('/js/lib/steal', express.static(path.join(__dirname, 'node_modules/steal')));
 
 		this.server.listen(3000, function () {
 			console.log('listening on port 3000!')

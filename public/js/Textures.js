@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import LayeredTexture from "LayeredTexture";
+import LayeredTexture from "./LayeredTexture";
 
 'use strict';
 

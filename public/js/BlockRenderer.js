@@ -1,9 +1,9 @@
 import $ from "jquery";
 import * as THREE from "three";
 
-import { Textures } from "Textures";
-import LayeredTexture from "LayeredTexture";
-import { BlockState } from "blockState";
+import { Textures } from "./Textures";
+import LayeredTexture from "./LayeredTexture";
+import { BlockState } from "./blockState";
 
 class BlockRenderer {
 	constructor(block) {

@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { OrbitControls } from "OrbitControls";
+import { OrbitControls } from "./lib/OrbitControls";
 
 class CameraController {
 	constructor(renderer, scene, options) {

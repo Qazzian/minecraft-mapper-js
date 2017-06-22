@@ -3,9 +3,9 @@
 import * as THREE from "three";
 
 
-import { SceneRenderer } from "SceneRenderer";
-import { BlockRenderer } from "BlockRenderer";
-import { QazzianMapServer } from "mapInterfaces/QazzianMapServer";
+import { SceneRenderer } from "./SceneRenderer";
+import { BlockRenderer } from "./BlockRenderer";
+import { QazzianMapServer } from "./mapInterfaces/QazzianMapServer";
 
 "use strict";
 

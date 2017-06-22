@@ -4,6 +4,7 @@
   "description": "Generating minecraft maps of exisiting worlds",
   "main": "index.js",
   "scripts": {
+    "build": "webpack",
     "start": "node index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -21,7 +22,10 @@
     "ws": "^2.0.2"
   },
   "devDependencies": {
+    "socket.io-client": "^2.0.3",
     "steal": "^1.2.3",
-    "steal-tools": "^1.1.2"
+    "three": "^0.86.0",
+    "webpack": "^2.6.1",
+    "webpack-dev-middleware": "^1.11.0"
   }
 }
