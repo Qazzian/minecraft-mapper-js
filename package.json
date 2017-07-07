@@ -3,18 +3,24 @@
   "version": "1.0.0",
   "description": "Generating minecraft maps of exisiting worlds",
   "main": "index.js",
+  "watch": {
+    "build": "public/js/**/*.js",
+    "test": "public/js/**/*.js"
+  },
   "scripts": {
     "build": "webpack",
     "start": "node index.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "./node_modules/.bin/karma start karma.config.js",
+    "watch": "./node_modules/.bin/npm-watch"
   },
   "author": "Qazzian@gmail.com",
   "license": "ISC",
   "dependencies": {
     "express": "^4.14.1",
     "minecraft-data": "^2.11.0",
+    "mocha": "^3.4.2",
     "prismarine-chunk": "^1.5.0",
-    "prismarine-nbt": "file:node_modules/prismarine-nbt",
+    "prismarine-nbt": "^1.1.1",
     "prismarine-provider-anvil": "^2.0.0",
     "prismarine-world": "^2.0.0",
     "socket.io": "^1.7.2",
@@ -22,6 +28,15 @@
     "ws": "^2.0.2"
   },
   "devDependencies": {
+    "babel-preset-es2015": "^6.24.1",
+    "jasmine": "^2.6.0",
+    "jquery": "^3.2.1",
+    "karma": "^1.7.0",
+    "karma-babel-preprocessor": "^6.0.1",
+    "karma-chrome-launcher": "^2.1.1",
+    "karma-jasmine": "^1.1.0",
+    "karma-webpack": "^2.0.3",
+    "npm-watch": "^0.2.0",
     "socket.io-client": "^2.0.3",
     "steal": "^1.2.3",
     "three": "^0.86.0",
