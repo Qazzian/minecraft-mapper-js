@@ -1,7 +1,7 @@
 
 
 import * as THREE from "three";
-
+import io from 'socket.io-client';
 
 import { SceneRenderer } from "./SceneRenderer";
 import { BlockRenderer } from "./BlockRenderer";
@@ -29,7 +29,7 @@ class Mapper {
 		this.dist = 10;
 		this.camOffset = [10, 10, 10];
 
-		this.mapInterface = new QazzianMapServer({
+		this.mapInterface = new QazzianMapServer(io, {
 			onBlockReceived: (blockData) => {this.addBlockData(blockData);}
 		});
 		this.sceneRenderer = new SceneRenderer();

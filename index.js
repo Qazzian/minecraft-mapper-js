@@ -129,7 +129,7 @@ class MapDataServer {
 		console.log('blockRequest: ', requestData);
 		const data = requestData;
 
-		if (data.hasOwnProperty('x') && data.hasOwnProperty('y') && data.hasOwnProperty('z')) {
+		if (this.has3dPosition(data)) {
 			let vec = new Vec3(data.x, data.y, data.z);
 			this.getBlock(vec).then((blockData) => {
 				console.info('send block 1: ', blockData);
@@ -139,7 +139,7 @@ class MapDataServer {
 			});
 
 		}
-		else if (data.hasOwnProperty('x') && data.hasOwnProperty('z')) {
+		else if (this.has2dPosition(data)) {
 			console.info('get highest block');
 			this.getHighestBlock(data.x, 255, data.z).then((blockData) => {
 				console.info('send block 2: ', blockData);
@@ -189,6 +189,14 @@ class MapDataServer {
 			}
 		}
 		console.info('Loops done: ', x, z);
+	}
+
+	has3dPosition(data) {
+		return data.hasOwnProperty('x') && data.hasOwnProperty('y') && data.hasOwnProperty('z')
+	}
+
+	has2dPosition(data) {
+		return data.hasOwnProperty('x') && data.hasOwnProperty('z');
 	}
 
 	sendVisibleInColumn(client, x, yMax, z) {

@@ -1,8 +1,8 @@
-import io from 'socket.io-client';
-
 class QazzianMapServer {
-	constructor(eventHandlers) {
-		let socket = this.socket = io(window.location.href);
+	constructor(ioInterface, eventHandlers) {
+		this.requests = {};
+
+		let socket = this.socket = ioInterface(window.location.href);
 		socket.on('connect', function () {
 			console.log('Connected to Map server');
 		});
@@ -15,14 +15,27 @@ class QazzianMapServer {
 		socket.on('blockList', function (data) {
 			data.forEach(eventHandlers.onBlockReceived);
 		});
+		socket.on('chunkData', function (data) {
+			debugger;
+			console.info('Chunk data: ', data);
+		});
+	}
+
+	requestArea(x1, x2, z1, z2) {
+		this.socket.emit('requestArea', {
+			north: z1,
+			south: z2,
+			west: x1,
+			east: x2
+		});
 	}
 
 	requestTopBlock(x, z) {
 		this.socket.emit('blockRequest', {x: x, z: z});
 	}
 
-	requestBlock(x, y, z) {
-		this.socket.emit('blockRequest', {x: x, y: y, z: z});
+	requestBlock(pos) {
+		this.socket.emit('blockRequest', pos);
 	}
 }
 
