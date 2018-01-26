@@ -7,8 +7,7 @@ const config = {
 		filename: 'mapper.bundle.js',
 		path: path.join(__dirname, 'public/js_dist')
 	},
-
-	devtool: "cheap-eval-source-map"
+	devtool: "source-map"
 };
 
 module.exports = config;
