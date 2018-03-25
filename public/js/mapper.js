@@ -24,10 +24,11 @@ const debugMode = false;
 class Mapper {
 	constructor() {
 		// The co-ords to start looking at
-		this.origin = [10, 100, 360];
+		// this.origin = [10, 100, 360];
+		this.origin = [0, 60, 0];
 		// How far to render the map from the origin
 		this.dist = 10;
-		this.camOffset = [10, 10, 10];
+		this.camOffset = [-10, 10, 10];
 
 		this.mapInterface = new QazzianMapServer(io, {
 			onBlockReceived: (blockData) => {this.addBlockData(blockData);}
@@ -69,7 +70,6 @@ class Mapper {
 
 	requestMapData() {
 		let dist = this.dist;
-		let origin = this.origin;
 
 		let x = this.origin[0] || 0,
 			z = this.origin[2] || 0;

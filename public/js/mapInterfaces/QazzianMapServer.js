@@ -22,6 +22,7 @@ class QazzianMapServer {
 	}
 
 	requestArea(x1, x2, z1, z2) {
+		console.info('requestArea: ', arguments);
 		this.socket.emit('requestArea', {
 			north: z1,
 			south: z2,
