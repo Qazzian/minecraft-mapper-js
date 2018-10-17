@@ -24,8 +24,8 @@ const debugMode = false;
 class Mapper {
 	constructor() {
 		// The co-ords to start looking at
-		// this.origin = [10, 100, 360];
-		this.origin = [0, 60, 0];
+		this.origin = [10, 100, 360];
+		// this.origin = [0, 60, 0];
 		// How far to render the map from the origin
 		this.dist = 10;
 		this.camOffset = [-10, 10, 10];
