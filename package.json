@@ -10,8 +10,9 @@
   "scripts": {
     "build": "webpack",
     "start": "node index.js",
+    "client": "node client.js",
     "test": "./node_modules/.bin/karma start karma.config.js",
-    "watch": "./node_modules/.bin/npm-watch"
+    "watch": "npm-watch"
   },
   "author": "Qazzian@gmail.com",
   "license": "ISC",
