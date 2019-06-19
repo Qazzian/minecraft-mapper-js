@@ -191,6 +191,8 @@ class MapDataServer {
 				if (this.isBlockTransparent(blockData.block)) {
 					this.sendVisibleInColumn(client, x, blockData.position.y - 1, z);
 				}
+			}).catch(err => {
+				console.error('Error in getHighestBlock: ', err);
 			});
 		}, 10);
 	}
@@ -236,17 +238,22 @@ class MapDataServer {
 	}
 
 	sendBlock(blockData, client) {
+		if (!blockData) {
+			console.info('sendBlock called with no data!');
+			return;
+		}
 		console.info('Emit block to client: ', blockData.position);
 		client.emit('blockData', blockData);
 	}
 
-	getBlock(vec3) {
-		return this.mapInstance.getBlock(vec3).then(block => {
+	async getBlock(vec3) {
+		try {
+			const block = await this.mapInstance.getBlock(vec3);
 			this.addBlockAttributes(block);
 			return {block: block, position: vec3};
-		}).catch(err => {
+		} catch(err) {
 			console.error('Error finding block data:', err);
-		});
+		}
 	}
 
 	isBlockTransparent(block) {

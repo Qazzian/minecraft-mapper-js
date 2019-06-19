@@ -2,20 +2,21 @@
   "name": "minecraft-mapper",
   "version": "1.0.0",
   "description": "Generating minecraft maps of exisiting worlds",
-  "main": "index.js",
-  "watch": {
-    "build": "public/js/**/*.js",
-    "test": "public/js/**/*.js"
-  },
+  "author": "Qazzian@gmail.com",
+  "license": "ISC",
+  "main": "server.js",
   "scripts": {
     "build": "webpack",
-    "start": "node index.js",
+    "start": "node server.js",
     "client": "node client.js",
+    "server": "node server.js",
     "test": "./node_modules/.bin/karma start karma.config.js",
     "watch": "npm-watch"
   },
-  "author": "Qazzian@gmail.com",
-  "license": "ISC",
+  "watch": {
+    "client": "public/js/**/*.js",
+    "test": "public/js/**/*.js"
+  },
   "dependencies": {
     "express": "^4.14.1",
     "minecraft-data": "^2.11.0",
