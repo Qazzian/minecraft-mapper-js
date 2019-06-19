@@ -19,7 +19,6 @@
   },
   "dependencies": {
     "express": "^4.14.1",
-    "express-router": "0.0.1",
     "minecraft-data": "^2.11.0",
     "mocha": "^3.4.2",
     "prismarine-chunk": "^1.5.0",
