@@ -15,11 +15,12 @@
   },
   "watch": {
     "client": "public/js/**/*.js",
+    "server": "./server.js",
     "test": "public/js/**/*.js"
   },
   "dependencies": {
     "express": "^4.14.1",
-    "minecraft-data": "^2.11.0",
+    "minecraft-data": "^2.37.5",
     "mocha": "^3.4.2",
     "prismarine-chunk": "^1.11.0",
     "prismarine-nbt": "^1.2.1",
