@@ -9,6 +9,7 @@ const chunk = {
 		const bitDepth = chunk.getBitDepth(paletteList.length);
 		const blockStates = sectionNbt.BlockStates.value;
 		const blockIndexes = chunk.blockStatesToInts(blockStates, bitDepth);
+		return blockIndexes.map((blockIndex) => paletteList[blockIndex]);
 	},
 
 	/**

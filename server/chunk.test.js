@@ -9,6 +9,13 @@ describe('Chunk', () => {
 		expect(mockChunk).toBeDefined();
 	});
 
+	test('parseSectionBlockStates', () => {
+		const testSection = chunk.getSection(mockChunk, 2);
+		const parsedBlocks = chunk.parseSectionBlockStates(testSection);
+		console.info('parsedBlocks: ', parsedBlocks);
+
+	});
+
 	test('getSection', () => {
 		expect(chunk.getSection).toBeDefined();
 		const sectionZero = chunk.getSection(mockChunk, 0);
