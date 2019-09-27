@@ -26,6 +26,7 @@
     ]
   },
   "dependencies": {
+    "@babel/runtime": "^7.5.5",
     "express": "^4.14.1",
     "minecraft-data": "^2.39.0",
     "prismarine-chunk": "^1.11.0",
@@ -40,6 +41,7 @@
     "@babel/cli": "^7.5.5",
     "@babel/core": "^7.5.5",
     "@babel/node": "^7.5.5",
+    "@babel/plugin-transform-runtime": "^7.5.5",
     "@babel/preset-env": "^7.5.5",
     "@babel/preset-react": "^7.0.0",
     "@babel/register": "^7.5.5",

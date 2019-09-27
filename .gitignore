@@ -1,4 +1,5 @@
 map
+misc
 node_modules
 public/blockstates
 public/js/lib/three.js-master
@@ -11,3 +12,6 @@ public/js/lib/fabric.js-1.7.4
 minecraft
 public/js/lib/controls
 .idea
+
+# Project exclude paths
+/public/js_dist/
