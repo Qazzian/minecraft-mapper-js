@@ -12,8 +12,7 @@ describe('Chunk', () => {
 	test('parseSectionBlockStates', () => {
 		const testSection = chunk.getSection(mockChunk, 2);
 		const parsedBlocks = chunk.parseSectionBlockStates(testSection);
-		console.info('parsedBlocks: ', parsedBlocks);
-
+		// console.info('parsedBlocks: ', parsedBlocks);
 	});
 
 	test('getSection', () => {
@@ -21,6 +20,33 @@ describe('Chunk', () => {
 		const sectionZero = chunk.getSection(mockChunk, 0);
 		expect(sectionZero).toBeDefined();
 		expect(sectionZero).toMatchSnapshot();
+	});
+
+	test('getSectionCoords', () => {
+		expect(chunk.getSectionCoords(0)).toMatchObject({x:0, z:0, y:0});
+		expect(chunk.getSectionCoords(1)).toMatchObject({x:1, z:0, y:0});
+		expect(chunk.getSectionCoords(16)).toMatchObject({x:0, z:1, y:0});
+		expect(chunk.getSectionCoords(256)).toMatchObject({x:0, z:0, y:1});
+	});
+
+	test('sectionCoordsToIndex', () => {
+		expect(chunk.sectionCoordsToIndex({x: 0, z: 0, y: 0})).toBe(0);
+		expect(chunk.sectionCoordsToIndex({x: 0, z: 2, y: 0})).toBe(32);
+		expect(chunk.getSectionCoords(32)).toMatchObject({x:0, z:2, y:0});
+		expect(chunk.sectionCoordsToIndex({x: 0, z: 0, y: 1})).toBe(256);
+		expect(chunk.sectionCoordsToIndex({x: 1, z: 1, y: 1})).toBe(273);
+		expect(chunk.getSectionCoords(273)).toMatchObject({x:1, z:1, y:1});
+		expect(chunk.sectionCoordsToIndex({x: 0, z: 0, y: 11})).toBe(2816);
+	});
+
+	test('sectionCoordsToChunkCoords', () => {
+		expect(chunk.sectionCoordsToChunkCoords({x:0, z:0, y:0}, 0)).toMatchObject({x:0, z:0, y:0});
+		expect(chunk.sectionCoordsToChunkCoords({x:0, z:0, y:0}, 1)).toMatchObject({x:0, z:0, y:16});
+		expect(chunk.sectionCoordsToChunkCoords({x:0, z:0, y:11}, 1)).toMatchObject({x:0, z:0, y:27});
+	});
+
+	test('chunkCoordsToSectionCoords', () => {
+		expect(chunk.chunkCoordsToSectionCoords({x:0, z:0, y:27})).toMatchObject({section: 1, blockIndex: 2816});
 	});
 
 	test('parseSectionPalette', () => {

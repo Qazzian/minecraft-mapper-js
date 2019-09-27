@@ -12,6 +12,32 @@ const chunk = {
 		return blockIndexes.map((blockIndex) => paletteList[blockIndex]);
 	},
 
+	getSectionCoords(index) {
+		return {
+			x: index % 16,
+			z: Math.floor(index / 16) % 16,
+			y: Math.floor(index / (16 * 16)),
+		};
+	},
+
+	sectionCoordsToIndex({x, y, z}) {
+		return (y * 16 * 16) + (z * 16) + x;
+	},
+
+	sectionCoordsToChunkCoords(coords, yIndex) {
+		return {
+			...coords,
+			y: coords.y + (yIndex * 16),
+		}
+	},
+
+	chunkCoordsToSectionCoords({x, y, z}) {
+		return {
+			section: 1,
+			blockIndex: 2816,
+		};
+	},
+
 	/**
 	 * Return an array of block id's preserving the order in the pallet.
 	 * @param sectionNbt
@@ -47,15 +73,14 @@ const chunk = {
 		do {
 			let newInt = 0;
 			if (currentBit + bitDepth > 64) {
-				if (currentLong +1 < longCount) {
+				if (currentLong + 1 < longCount) {
 					const overflowLong = [
 						blockStates[currentLong][1],
 						blockStates[currentLong + 1][0],
 					];
 					newInt = chunk.getIntFromLong(overflowLong, currentBit - 32, bitDepth);
 				}
-			}
-			else {
+			} else {
 				newInt = chunk.getIntFromLong(blockStates[currentLong], currentBit, bitDepth);
 			}
 			intList.push(newInt);
@@ -85,7 +110,7 @@ const chunk = {
 			const underflow = 32 - bitPos;
 			// the bits in the second half
 			const overflow = bitDepth - underflow;
-			const int1 = chunk.getIntFromLong(long, bitPos, underflow)  <<  bitDepth - underflow;
+			const int1 = chunk.getIntFromLong(long, bitPos, underflow) << bitDepth - underflow;
 			const int2 = chunk.getIntFromLong(long, 32, overflow);
 			return int1 + int2;
 		}

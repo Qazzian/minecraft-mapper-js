@@ -12,22 +12,23 @@ function parseHeader(buff) {
 	for (let x = 0; x<32; x++) {
 		for (let z = 0; z<32; z++) {
 			const headerOffset = getByteOffset(x, z);
+			const {offset, size} = readChunkLocationAtOffset(buff, headerOffset);
 			locations.push({
-				...readChunkLocationAtOffset(buff, headerOffset),
+				offset,
+				size,
 				x,
 				z,
 			});
 		}
 	}
 
-	return locations.sort((a,b) => {return a.offset - b.offset});
+	function pm(p) { return (p.x<<8)+ p.z }
+	return locations.sort((a,b) => {return pm(a) - pm(b)});
 }
-
 
 
 function readChunkLocationAtOffset(buff, headerOffset) {
 	const offset= buff.readUInt32BE(headerOffset) >> 8;
-	// console.info('readChunkLocationAtOffset: ', offset);
 	const size = buff.readUInt8(headerOffset+3);
 	return {offset, size};
 }
@@ -38,8 +39,6 @@ const SECTOR_SIZE = 4 * 1024; // 4KiB
 function getChunkData(buff, offset, size) {
 	const byteOffset = offset * SECTOR_SIZE;
 	const byteSize = size * SECTOR_SIZE;
-	console.info('getChunkData: ', byteOffset, byteSize, byteOffset + byteSize);
-	console.info('getChunkData: 0x%s 0x%s', byteOffset.toString(16), (byteOffset + byteSize).toString(16));
 	const chunkBuff = buff.slice(byteOffset, byteOffset + byteSize);
 	return {
 		length: chunkBuff.readUInt32BE(0),
@@ -49,9 +48,12 @@ function getChunkData(buff, offset, size) {
 }
 
 function parseChunkData(buff, compressMode) {
-	// TODO support compress mode 1
-	if (compressMode != 2) { return new Error('Unsupported compression:', compressMode)}
 	return new Promise((resolve, reject) => {
+		// TODO support compress mode 1
+		if (compressMode != 2) {
+			reject( new Error('Unsupported compression:', compressMode))
+		}
+
 		zlib.unzip(buff, function(error, uncompressed){
 			if (error) {
 				reject(error);

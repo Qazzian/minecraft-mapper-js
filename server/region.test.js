@@ -41,14 +41,15 @@ describe('Region file handling', () => {
 	test('Reading chunk data', async () => {
 		const buffer = readRegionSync();
 		const rawChunkData = region.getChunkData(buffer, 2, 1);
-		console.info('RAW CHUNK DATA:', rawChunkData);
 		const processedChunkData = await region.parseChunkData(rawChunkData.data, rawChunkData.compression);
 		console.info('Chunk Obj', processedChunkData);
+		fs.writeFileSync('./chunk.json', JSON.stringify(processedChunkData, null, 4));
 	});
 
 	test('Parse header', () => {
 		const buffer = readRegionSync();
 		const chunkLocations = region.parseHeader(buffer);
 		// console.info('CHUNK LOCATIONS:', chunkLocations);
+
 	});
 });

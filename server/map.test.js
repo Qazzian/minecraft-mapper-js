@@ -24,7 +24,19 @@ describe('Map', () => {
 	});
 
 
-	test('Load block data', () => {
-		expect(Map.getChunk()).toMatchObject({});
+	xtest('Load region file', async () => {
+		const mapPath = Map.getMapPath('Qazzian1', mapRoot);
+		const regionData = await Map.loadRegion(mapPath, 0, 0);
+		// console.info('REGION DATA: ', regionData);
+	});
+
+	// Don't worry about Bedrock edition for now
+	// They changed the level format at some point so working out how to parse it will be a PITA
+	xtest('loading a Bedrock Map', async () => {
+		const map = new Map('Bedrock', mapConfig.getMapDir);
+		expect(map).toBeDefined();
+		const mapData = await map.loadMetaData('Bedrock', mapConfig.getMapDir, true);
+		// console.info('mapData: ', JSON.stringify(mapData));
+		expect(map.getVersionString(mapData)).toBe('1.1.1');
 	});
 });
