@@ -5,6 +5,7 @@ import { CameraController } from "./CameraController";
 class SceneRenderer {
 	constructor() {
 		this.scene = new THREE.Scene();
+		this.isRunning = false;
 
 		this.renderer = new THREE.WebGLRenderer({antialias: true});
 		this.renderer.setSize(window.innerWidth, window.innerHeight);
@@ -13,7 +14,21 @@ class SceneRenderer {
 		this.cameraControls = new CameraController(this.renderer, this.scene);
 	}
 
+	play() {
+		if (this.isRunning) {
+			return;
+		}
+
+		this.isRunning = true;
+		this.animate();
+	}
+
+	pause() {
+		this.isRunning = false;
+	}
+
 	addAxisLines(pos) {
+		console.info('adding axisHelper');
 		let axisHelper = new THREE.AxisHelper(10);
 		axisHelper.translateX(pos[0]);
 		axisHelper.translateY(pos[1]);
@@ -32,10 +47,12 @@ class SceneRenderer {
 	};
 
 	animate() {
-		requestAnimationFrame(() => {
-			this.animate()
-		});
 		this.render();
+		if (this.isRunning) {
+			requestAnimationFrame(() => {
+				this.animate()
+			});
+		}
 	}
 }
 

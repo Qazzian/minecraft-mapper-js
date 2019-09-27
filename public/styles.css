@@ -9,13 +9,24 @@ canvas {
 	height: 100%
 }
 
+.info-box {
+	background-color: rgba(70, 70, 70, 0.70);
+	color: rgba(255, 255, 255, 0.85);
+	padding: 0.2rem 1rem;
+}
+
+.controls {
+	position: fixed;
+	top: 0;
+	right: 0;
+	border-bottom-left-radius: 5px;
+	padding: 0.4rem 1rem;
+}
+
 .mm__instructions {
 	position: fixed;
 	bottom: 0;
 	right: 0;
-	background-color: rgba(2, 2, 2, 0.70);
-	color: rgba(255, 255, 255, 0.85);
-	padding: 0.2rem 1rem;
 	border-top-left-radius: 5px;
 }
 .mm__instructions p {

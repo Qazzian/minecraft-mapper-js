@@ -1,5 +1,3 @@
-
-
 import * as THREE from "three";
 import io from 'socket.io-client';
 
@@ -45,15 +43,33 @@ class Mapper {
 			this.addDebugObjects(this.origin);
 			this.lookAt(this.origin);
 		// }
+
+		document.querySelector('.play').addEventListener('click', () => {this.onPlay()});
+		document.querySelector('.pause').addEventListener('click', () => {this.onPause()});
+		document.querySelector('.step').addEventListener('click', () => {this.onStep()});
 	}
 
 	start() {
 		this.requestMapData();
 		this.lookAt(this.origin);
-		this.sceneRenderer.animate();
+		this.sceneRenderer.render();
+	}
+
+	onPlay() {
+		this.sceneRenderer.play();
+	}
+
+	onPause() {
+		this.sceneRenderer.pause();
+	}
+
+	onStep() {
+		this.sceneRenderer.render();
 	}
 
 	addDebugObjects(pos) {
+		window.scene = this.scene;
+		window.THREE = THREE;
 		this.sceneRenderer.addAxisLines(pos);
 	}
 

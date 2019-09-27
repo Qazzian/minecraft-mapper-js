@@ -1,4 +1,5 @@
 const path = require('path');
+require("@babel/register");
 
 const config = {
 	entry: './public/js/mapper.js',
@@ -7,7 +8,23 @@ const config = {
 		filename: 'mapper.bundle.js',
 		path: path.join(__dirname, 'public/js_dist')
 	},
-	devtool: "source-map"
+	module: {
+		rules: [
+			{
+				test: '/public/**/*.js',
+				use: ['babel-loader'],
+			},
+			{
+				test: /\.css$/,
+				use: ['style-loader', 'css-loader'],
+			}
+		],
+	},
+
+	plugins: [],
+	watch: true,
+	devtool: "source-map",
+
 };
 
 module.exports = config;
