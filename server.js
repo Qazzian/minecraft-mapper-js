@@ -14,6 +14,8 @@ const worldFactory = require('prismarine-world');
 const mcDataFactory = require("minecraft-data");
 const Vec3 = require('vec3');
 
+const Map = require('./server/map');
+
 // const maxLevelHeight = mcData.type === 'pe' ? 128 : 255;
 
 const MOVEMENT = {
@@ -51,6 +53,10 @@ class MapDataServer {
 			client.on('blockRequest', (requestData) => {
 				console.info('block request: ', requestData);
 				return self.onBlockRequest(client, requestData);
+			});
+			client.on('requestChunk', (req) => {
+				console.info('Chunk Request: ', req);
+				return this.onChunkRequest(client, req);
 			});
 			client.on('requestArea', (requestData) => {
 				console.info('Area request: ', requestData);
@@ -146,6 +152,21 @@ class MapDataServer {
 			// TODO operation not defined
 			console.info('blockRequest operation not defined');
 		}
+	}
+
+	onChunkRequest(client, requestData) {
+		// TODO
+		console.info('TODO onChunkRequest');
+		return this.handleChunkResponse(client, 'Qazzian1', 0, 0);
+	}
+
+	handleChunkResponse(client, mapId, x, z) {
+		const map = new Map(mapId);
+		const chunkData = map.loadChunk(0, 0);
+		chunkData.then((chunkBuff) => {
+			console.info('Emit chunk data:\n\n', chunkBuff, '\n\n');
+			client.emit('chunkData', chunkBuff);
+		});
 	}
 
 	/**

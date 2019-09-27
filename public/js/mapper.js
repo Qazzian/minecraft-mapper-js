@@ -74,7 +74,8 @@ class Mapper {
 		let x = this.origin[0] || 0,
 			z = this.origin[2] || 0;
 
-		this.mapInterface.requestArea(x-dist, x+dist, z-dist, z+dist);
+		// this.mapInterface.requestArea(x-dist, x+dist, z-dist, z+dist);
+		this.mapInterface.requestChunk(x, z);
 	}
 
 // TODO use a webWorker to process the block data queue and add elements to the scene

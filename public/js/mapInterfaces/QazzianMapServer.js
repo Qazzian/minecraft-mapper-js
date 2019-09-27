@@ -1,8 +1,13 @@
+const serverUrl = 'http://localhost:4001';
+const region = require('../../../server/region');
+
+// import { region } from '../../../server/region';
+
 class QazzianMapServer {
 	constructor(ioInterface, eventHandlers) {
 		this.requests = {};
 
-		let socket = this.socket = ioInterface(window.location.href);
+		let socket = this.socket = ioInterface(serverUrl);
 		socket.on('connect', function () {
 			console.log('Connected to Map server');
 		});
@@ -16,12 +21,17 @@ class QazzianMapServer {
 			data.forEach(eventHandlers.onBlockReceived);
 		});
 		socket.on('chunkData', function (data) {
-			debugger;
-			console.info('Chunk data: ', data);
+			const chunkNbt = data;
+			console.info('Chunk data: ', chunkNbt);
 		});
 	}
 
+	requestChunk(x, z) {
+		this.socket.emit('requestChunk', {x, z});
+	}
+
 	requestArea(x1, x2, z1, z2) {
+		return;
 		console.info('requestArea: ', arguments);
 		this.socket.emit('requestArea', {
 			north: z1,
