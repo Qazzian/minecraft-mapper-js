@@ -23,6 +23,7 @@ class QazzianMapServer {
 		socket.on('chunkData', function (data) {
 			const chunkNbt = data;
 			console.info('Chunk data: ', chunkNbt);
+			eventHandlers.processChunk(chunkNbt);
 		});
 	}
 

@@ -4,6 +4,7 @@ import io from 'socket.io-client';
 import { SceneRenderer } from "./SceneRenderer";
 import { BlockRenderer } from "./BlockRenderer";
 import { QazzianMapServer } from "./mapInterfaces/QazzianMapServer";
+import chunk from "../../common/chunk";
 
 "use strict";
 
@@ -29,7 +30,8 @@ class Mapper {
 		this.camOffset = [-10, 10, 10];
 
 		this.mapInterface = new QazzianMapServer(io, {
-			onBlockReceived: (blockData) => {this.addBlockData(blockData);}
+			onBlockReceived: (blockData) => {this.addBlockData(blockData); },
+			onChunkReceived: (chunkData) => {this.processChunk(chunkData); }
 		});
 		this.sceneRenderer = new SceneRenderer();
 		this.scene = this.sceneRenderer.scene;
@@ -102,6 +104,10 @@ class Mapper {
 			modelData.position = blockData.position;
 			this.addToScene(modelData);
 		});
+	}
+
+	processChunk(chunkNbt) {
+
 	}
 
 	addBlockList(blocks) {

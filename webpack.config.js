@@ -11,7 +11,9 @@ const config = {
 	module: {
 		rules: [
 			{
-				test: '/public/**/*.js',
+				test: [
+					/(common|public)\/.*\.js/
+				],
 				use: ['babel-loader'],
 			},
 			{

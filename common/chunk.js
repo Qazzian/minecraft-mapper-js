@@ -26,7 +26,7 @@ const chunk = {
 
 	sectionCoordsToChunkCoords(coords, yIndex) {
 		return {
-			...coords,
+			x: coords.x,
 			y: coords.y + (yIndex * 16),
 		}
 	},
@@ -123,7 +123,44 @@ const chunk = {
 		// 	'\nshifted by ', workingPos, int.toString(2),
 		// 	'\nshifted back by ', 32 - bitDepth, out, out.toString(2));
 		return out;
-	}
+	},
+
+	iter: function* (nbtData) {
+		const sectionIter = chunk.iterSections(nbtData);
+		let section = sectionIter.next();
+
+		while(!section.done) {
+			const blockIter = chunk.iterSectionBlocks(section.nbt);
+			let block = blockIter.next();
+
+			while (!block.done) {
+				// todo read block
+
+				yield block = blockIter.next();
+			}
+			section = sectionIter.next();
+		}
+	},
+
+	iterSections: function* (chunkNbt) {
+		for(let sectionIndex=0; sectionIndex<16; ++sectionIndex) {
+			const coords = chunk.getSectionCoords(sectionIndex);
+			yield {
+				index: sectionIndex,
+				coord,
+				nbt: chunk.getSection(chunkNbt, sectionIndex),
+			};
+		}
+	},
+
+	iterSectionBlocks: function* (sectionNbt) {
+		const sectionPallet = chunk.parseSectionPalette(sectionNbt);
+		const blockStates = chunk.parseSectionBlockStates(sectionNbt);
+
+		// todo iter over block states matching them to their pallet entry
+		//  return an obj with index, xyz corrds, type, etc
+
+	},
 };
 
 module.exports = chunk;

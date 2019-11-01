@@ -8,6 +8,11 @@ const PORT = 4000;
 
 const webpack = require('webpack');
 const webpackMiddleware = require("webpack-dev-middleware");
+const webpackConfig = require("./webpack.config");
+const webpackMiddlewareConfig = {
+	publicPath: '/public/js_dist/',
+	logLevel: 'trace',
+};
 
 
 class ClientServer {
@@ -23,15 +28,7 @@ class ClientServer {
 		this.server = http.createServer(this.app);
 
 		// TODO DEVELOPMENT ONLY FOR WEBPACK
-		this.app.use(webpackMiddleware(webpack({
-			entry: './public/js/mapper.js',
-			output: {
-				filename: 'mapper.bundle.js',
-				path: path.join(__dirname, 'public/js_dist')
-			}
-		}),{
-			publicPath: '/public/js_dist/',
-		}));
+		this.app.use(webpackMiddleware(webpack(webpackConfig), webpackMiddlewareConfig));
 
 		// Setup static routes
 		this.app.use(express.static(path.join(__dirname, 'public')));

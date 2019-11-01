@@ -1,6 +1,6 @@
 const chunk = require('./chunk');
 
-const mockChunk = require('./__mock__/chunk');
+const mockChunk = require('../server/__mock__/chunk');
 
 describe('Chunk', () => {
 
@@ -94,5 +94,10 @@ describe('Chunk', () => {
 
 		expect(blockInts).toMatchObject(expected);
 
+	});
+
+	test('Can iterate over all the blocks of a chunk', () => {
+		const chunkIter = chunk.iter(mockChunk);
+		expect(chunkIter).toBeDefined();
 	});
 });
