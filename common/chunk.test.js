@@ -9,10 +9,22 @@ describe('Chunk', () => {
 		expect(mockChunk).toBeDefined();
 	});
 
-	test('parseSectionBlockStates', () => {
-		const testSection = chunk.getSection(mockChunk, 2);
-		const parsedBlocks = chunk.parseSectionBlockStates(testSection);
-		// console.info('parsedBlocks: ', parsedBlocks);
+	describe('parseSectionBlockStates', () => {
+
+		test('parse a normal section', () => {
+			const testSection = chunk.getSection(mockChunk, 2);
+			const parsedBlocks = chunk.parseSectionBlockStates(testSection);
+		});
+
+		test('Deal with empty sections', () => {
+			let result;
+			expect(() => {
+				result = chunk.parseSectionBlockStates(undefined);
+			}).not.toThrow();
+			expect(result.length).toBe(4096);
+			expect(result[0]).toBe('minecraft:air');
+			expect(result[4096-1]).toBe('minecraft:air');
+		});
 	});
 
 	test('getSection', () => {
@@ -46,7 +58,9 @@ describe('Chunk', () => {
 	});
 
 	test('chunkCoordsToSectionCoords', () => {
-		expect(chunk.chunkCoordsToSectionCoords({x:0, z:0, y:27})).toMatchObject({section: 1, blockIndex: 2816});
+		expect(chunk.chunkCoordsToSectionCoords({x:0, z:0, y:27})).toMatchObject({section: 1, coords: {x:0, z:0, y:11}});
+		expect(chunk.chunkCoordsToSectionCoords({x:0, z:0, y:16})).toMatchObject({section: 1, coords: {x:0, z:0, y:0}});
+		expect(chunk.chunkCoordsToSectionCoords({x:0, z:0, y:0})).toMatchObject({section: 0, coords: {x:0, z:0, y:0}});
 	});
 
 	test('parseSectionPalette', () => {
@@ -96,8 +110,62 @@ describe('Chunk', () => {
 
 	});
 
-	test('Can iterate over all the blocks of a chunk', () => {
+	test('Can iter over all the sections of a chunk', () => {
+		const sectionIter = chunk.iterSections(mockChunk);
+		expect(sectionIter).toBeDefined();
+
+		let next = sectionIter.next();
+		let count = 0;
+
+		expect(next.value).toMatchSnapshot();
+		while (!next.done) {
+			next = sectionIter.next();
+			count++;
+		}
+		expect(count).toBe(16);
+
+	});
+
+	test('Can iter over all the blocks in a section', () => {
+		const sectionZero = chunk.getSection(mockChunk, 0);
+		const blockIter = chunk.iterSectionBlocks(sectionZero);
+
+		let block = blockIter.next();
+		let count = 0;
+
+		expect(blockIter).toBeDefined();
+		expect(block).toBeDefined();
+		expect(block.value).toMatchObject({
+			state: 'minecraft:bedrock',
+			sectionPos: { x:0, y:0, z:0 },
+		});
+
+		while (!block.done) {
+			block = blockIter.next();
+			count++;
+		}
+		expect(count).toBe(4096);
+
+	});
+
+	// Note: this takes too long. Maybe we just deal with
+	// one section at a time.
+	xtest('Can iterate over all the blocks of a chunk', () => {
 		const chunkIter = chunk.iter(mockChunk);
 		expect(chunkIter).toBeDefined();
+
+		let blockNode = chunkIter.next();
+		let count = 0;
+
+		expect(blockNode).toBeDefined();
+		expect(blockNode.value).toMatchSnapshot();
+		while (!blockNode.done) {
+			blockNode = chunkIter.next();
+			count++;
+			if (count >= 65536) {
+				debugger;
+			}
+		}
+		expect(count).toBe(16 * 4096);
 	});
 });

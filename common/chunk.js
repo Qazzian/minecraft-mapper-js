@@ -1,10 +1,15 @@
 const chunk = {
+
 	getSection(chunkNbt, index) {
 		const sectionList = chunkNbt.value.Level.value.Sections;
 		return sectionList.value.value[index];
 	},
 
 	parseSectionBlockStates(sectionNbt) {
+		if (!sectionNbt) {
+			return new Array(4096).fill('minecraft:air');
+		}
+
 		const paletteList = chunk.parseSectionPalette(sectionNbt);
 		const bitDepth = chunk.getBitDepth(paletteList.length);
 		const blockStates = sectionNbt.BlockStates.value;
@@ -12,6 +17,10 @@ const chunk = {
 		return blockIndexes.map((blockIndex) => paletteList[blockIndex]);
 	},
 
+	/**
+	 * @param {Number} index: The block index within the section
+	 * @returns {Object} {x, y, z} of the block within the section
+	 */
 	getSectionCoords(index) {
 		return {
 			x: index % 16,
@@ -20,21 +29,47 @@ const chunk = {
 		};
 	},
 
+	/**
+	 * @param {number} x
+	 * @param {number} y
+	 * @param {number} z
+	 * @returns {number}
+	 */
 	sectionCoordsToIndex({x, y, z}) {
 		return (y * 16 * 16) + (z * 16) + x;
 	},
 
+	/**
+	 * Given the coordinates of a block relative to the section
+	 * and the index of the section within the chunk,
+	 * return the coordinates relative to the chunk.
+	 * @param {Object} coords: {x, y, z}
+	 * @param {Number} yIndex
+	 * @returns {{x: number, y: number, z: number}}
+	 */
 	sectionCoordsToChunkCoords(coords, yIndex) {
-		return {
-			x: coords.x,
-			y: coords.y + (yIndex * 16),
-		}
+		return Object.assign(
+			{},
+			coords,
+			{
+				y: coords.y + (yIndex * 16)
+			}
+		);
 	},
 
+	/**
+	 * Given block coordinates relative to the chunk,
+	 * return the coordinates relative to the section
+	 * and the index of the section
+	 * @param x
+	 * @param y
+	 * @param z
+	 * @returns {{section: number, coords: {x: number, y: number, z: number}}}
+	 */
 	chunkCoordsToSectionCoords({x, y, z}) {
 		return {
-			section: 1,
-			blockIndex: 2816,
+			section: Math.floor(y / 16),
+			coords: {x, y: y % 16, z},
 		};
 	},
 
@@ -47,8 +82,8 @@ const chunk = {
 		return paletteList.map(blockNbt => blockNbt.Name.value);
 	},
 
-	getBitDepth(number) {
-		let shifted = number;
+	getBitDepth(palletLength) {
+		let shifted = palletLength;
 		let shiftCount = 0;
 		while (shifted > 0) {
 			shiftCount++;
@@ -125,42 +160,45 @@ const chunk = {
 		return out;
 	},
 
-	iter: function* (nbtData) {
+	// Note removed for performance reasons
+	__iter: function* (nbtData) {
 		const sectionIter = chunk.iterSections(nbtData);
-		let section = sectionIter.next();
+		let sectionNode = sectionIter.next();
 
-		while(!section.done) {
-			const blockIter = chunk.iterSectionBlocks(section.nbt);
-			let block = blockIter.next();
+		while(!sectionNode.done) {
+			const blockIter = chunk.iterSectionBlocks(sectionNode.value.nbt);
+			let blockNode = blockIter.next();
 
-			while (!block.done) {
-				// todo read block
-
-				yield block = blockIter.next();
+			while (!blockNode.done) {
+				const block = blockNode.value;
+				block.chunkPos = chunk.sectionCoordsToChunkCoords(block.sectionPos, sectionNode.value.index);
+				yield block;
+				blockNode = blockIter.next();
 			}
-			section = sectionIter.next();
+			sectionNode = sectionIter.next();
+			// sectionNode.done = true;
 		}
 	},
 
 	iterSections: function* (chunkNbt) {
 		for(let sectionIndex=0; sectionIndex<16; ++sectionIndex) {
-			const coords = chunk.getSectionCoords(sectionIndex);
 			yield {
 				index: sectionIndex,
-				coord,
 				nbt: chunk.getSection(chunkNbt, sectionIndex),
 			};
 		}
 	},
 
 	iterSectionBlocks: function* (sectionNbt) {
-		const sectionPallet = chunk.parseSectionPalette(sectionNbt);
 		const blockStates = chunk.parseSectionBlockStates(sectionNbt);
 
-		// todo iter over block states matching them to their pallet entry
-		//  return an obj with index, xyz corrds, type, etc
-
+		for (let i=0; i<blockStates.length; i++) {
+			yield {
+				state: blockStates[i],
+				sectionPos: chunk.getSectionCoords(i)
+			};
+		}
 	},
 };
 
-module.exports = chunk;
+export default chunk;
