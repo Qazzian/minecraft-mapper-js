@@ -1,6 +1,6 @@
 const chunk = require('./chunk');
 
-const mockChunk = require('../server/__mock__/chunk');
+const mockChunk = require('./__mock__/chunk');
 
 describe('Chunk', () => {
 

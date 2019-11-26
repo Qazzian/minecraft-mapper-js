@@ -38,12 +38,10 @@ describe('Region file handling', () => {
 		// buffer.
 	});
 
-	test('Reading chunk data', async () => {
+	xtest('Reading chunk data', async () => {
 		const buffer = readRegionSync();
 		const rawChunkData = region.getChunkData(buffer, 2, 1);
 		const processedChunkData = await region.parseChunkData(rawChunkData.data, rawChunkData.compression);
-		console.info('Chunk Obj', processedChunkData);
-		fs.writeFileSync('./chunk.json', JSON.stringify(processedChunkData, null, 4));
 	});
 
 	test('Parse header', () => {
