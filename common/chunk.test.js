@@ -136,7 +136,8 @@ describe('Chunk', () => {
 		expect(blockIter).toBeDefined();
 		expect(block).toBeDefined();
 		expect(block.value).toMatchObject({
-			state: 'minecraft:bedrock',
+			name: 'minecraft:bedrock',
+			properties: {},
 			sectionPos: { x:0, y:0, z:0 },
 		});
 
@@ -148,24 +149,19 @@ describe('Chunk', () => {
 
 	});
 
-	// Note: this takes too long. Maybe we just deal with
-	// one section at a time.
-	xtest('Can iterate over all the blocks of a chunk', () => {
-		const chunkIter = chunk.iter(mockChunk);
-		expect(chunkIter).toBeDefined();
+	function lowest(array) {
+		return array.reduce(Math.min, 9999);
+	}
 
-		let blockNode = chunkIter.next();
-		let count = 0;
+	function highest(array) {
+		return array.reduce(Math.max, 0)
+	}
 
-		expect(blockNode).toBeDefined();
-		expect(blockNode.value).toMatchSnapshot();
-		while (!blockNode.done) {
-			blockNode = chunkIter.next();
-			count++;
-			if (count >= 65536) {
-				debugger;
-			}
-		}
-		expect(count).toBe(16 * 4096);
+	test('Get height map', () => {
+		const heightMap = chunk.getHeightMap(mockChunk);
+
+		expect(heightMap).toBeDefined();
+		expect(heightMap.length).toBe(256);
+
 	});
 });

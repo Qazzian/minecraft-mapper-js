@@ -5254,22 +5254,6 @@ Object {
 }
 `;
 
-exports[`Chunk Can iterate over all the blocks of a chunk 1`] = `
-Object {
-  "chunkPos": Object {
-    "x": 0,
-    "y": 0,
-    "z": 0,
-  },
-  "sectionPos": Object {
-    "x": 0,
-    "y": 0,
-    "z": 0,
-  },
-  "state": "minecraft:bedrock",
-}
-`;
-
 exports[`Chunk getSection 1`] = `
 Object {
   "BlockLight": Object {
@@ -10523,20 +10507,67 @@ Object {
 
 exports[`Chunk parseSectionPalette 1`] = `
 Array [
-  "minecraft:air",
-  "minecraft:bedrock",
-  "minecraft:stone",
-  "minecraft:andesite",
-  "minecraft:iron_ore",
-  "minecraft:redstone_ore",
-  "minecraft:granite",
-  "minecraft:dirt",
-  "minecraft:coal_ore",
-  "minecraft:gold_ore",
-  "minecraft:diorite",
-  "minecraft:diamond_ore",
-  "minecraft:gravel",
-  "minecraft:cave_air",
-  "minecraft:lapis_ore",
+  Object {
+    "name": "minecraft:air",
+    "properties": Object {},
+  },
+  Object {
+    "name": "minecraft:bedrock",
+    "properties": Object {},
+  },
+  Object {
+    "name": "minecraft:stone",
+    "properties": Object {},
+  },
+  Object {
+    "name": "minecraft:andesite",
+    "properties": Object {},
+  },
+  Object {
+    "name": "minecraft:iron_ore",
+    "properties": Object {},
+  },
+  Object {
+    "name": "minecraft:redstone_ore",
+    "properties": Object {
+      "lit": "false",
+    },
+  },
+  Object {
+    "name": "minecraft:granite",
+    "properties": Object {},
+  },
+  Object {
+    "name": "minecraft:dirt",
+    "properties": Object {},
+  },
+  Object {
+    "name": "minecraft:coal_ore",
+    "properties": Object {},
+  },
+  Object {
+    "name": "minecraft:gold_ore",
+    "properties": Object {},
+  },
+  Object {
+    "name": "minecraft:diorite",
+    "properties": Object {},
+  },
+  Object {
+    "name": "minecraft:diamond_ore",
+    "properties": Object {},
+  },
+  Object {
+    "name": "minecraft:gravel",
+    "properties": Object {},
+  },
+  Object {
+    "name": "minecraft:cave_air",
+    "properties": Object {},
+  },
+  Object {
+    "name": "minecraft:lapis_ore",
+    "properties": Object {},
+  },
 ]
 `;

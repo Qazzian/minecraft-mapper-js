@@ -1,8 +1,38 @@
+// Chunk format documented https://minecraft.gamepedia.com/Chunk_format
+
+const CHUNK_SIZE = 16;
+const SECTION_HEIGHT = 16;
+
 const chunk = {
 
+	getPosition(chunkNbt) {
+		const root = chunkNbt.value.Level.value;
+		return {
+			x: root.xPos.value,
+			z: root.zPos.value,
+		};
+	},
+
+	/**
+	 * Work out the world position for a block
+	 * @param {Object} blockChunkPos xyz coords of the block relative to the chunk
+	 * @param {Object} chunkWorldPos xz coords of the chunk relative to the world
+	 */
+	getWorldPosForBlock(blockChunkPos, chunkWorldPos) {
+		return {
+			x: blockChunkPos.x + (chunkWorldPos.x * CHUNK_SIZE),
+			y: blockChunkPos.y,
+			z: blockChunkPos.z + (chunkWorldPos.x * CHUNK_SIZE),
+		}
+	},
+
+	getSectionList(chunkNbt) {
+		return chunkNbt.value.Level.value.Sections.value.value;
+	},
+
 	getSection(chunkNbt, index) {
-		const sectionList = chunkNbt.value.Level.value.Sections;
-		return sectionList.value.value[index];
+		const sectionList = chunk.getSectionList(chunkNbt);
+		return sectionList[index];
 	},
 
 	parseSectionBlockStates(sectionNbt) {
@@ -73,13 +103,37 @@ const chunk = {
 		};
 	},
 
+	getSectionYPos(sectionNbt) {
+		debugger;
+		return 0;
+	},
+
 	/**
 	 * Return an array of block id's preserving the order in the pallet.
 	 * @param sectionNbt
 	 */
 	parseSectionPalette(sectionNbt) {
 		const paletteList = sectionNbt.Palette.value.value;
-		return paletteList.map(blockNbt => blockNbt.Name.value);
+		return paletteList.map(blockNbt => ({
+			name: blockNbt.Name.value,
+			properties: chunk.getProps(blockNbt),
+		}));
+	},
+
+	getProps(blockNbt) {
+		debugger;
+		if (!blockNbt.Properties) {
+			return {};
+		}
+
+		const props = blockNbt.Properties.value;
+		const parsedProps =  Object.keys(props).reduce((propsObj, propName) => {
+			propsObj[propName] = props[propName].value;
+			return propsObj;
+		}, {});
+
+		console.info('props', parsedProps);
+		return parsedProps;
 	},
 
 	getBitDepth(palletLength) {
@@ -160,26 +214,6 @@ const chunk = {
 		return out;
 	},
 
-	// Note removed for performance reasons
-	__iter: function* (nbtData) {
-		const sectionIter = chunk.iterSections(nbtData);
-		let sectionNode = sectionIter.next();
-
-		while(!sectionNode.done) {
-			const blockIter = chunk.iterSectionBlocks(sectionNode.value.nbt);
-			let blockNode = blockIter.next();
-
-			while (!blockNode.done) {
-				const block = blockNode.value;
-				block.chunkPos = chunk.sectionCoordsToChunkCoords(block.sectionPos, sectionNode.value.index);
-				yield block;
-				blockNode = blockIter.next();
-			}
-			sectionNode = sectionIter.next();
-			// sectionNode.done = true;
-		}
-	},
-
 	iterSections: function* (chunkNbt) {
 		for(let sectionIndex=0; sectionIndex<16; ++sectionIndex) {
 			yield {
@@ -194,11 +228,25 @@ const chunk = {
 
 		for (let i=0; i<blockStates.length; i++) {
 			yield {
-				state: blockStates[i],
-				sectionPos: chunk.getSectionCoords(i)
+				...blockStates[i],
+				sectionPos: chunk.getSectionCoords(i),
 			};
 		}
 	},
+
+	getHeightMap: function(chunkNbt, mapType='WORLD_SURFACE') {
+		const heightMaps = chunkNbt.value.Level.value.Heightmaps.value;
+		const heightMap = heightMaps[mapType].value;
+
+		// height maps are always 9bit numbers
+		return chunk.blockStatesToInts(heightMap, 9);
+	},
 };
+
+console.info('CHUNK.js loaded');
+
+if (module && module.exports) {
+	module.exports = chunk;
+}
 
 export default chunk;
