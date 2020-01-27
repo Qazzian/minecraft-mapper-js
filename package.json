@@ -22,13 +22,18 @@
     "testPathIgnorePatterns": [
       "/node_modules/",
       "/map/",
-      "misc"
+      "misc",
+      "public/js_dist"
     ]
   },
+  "browserslist": "> 0.25%, not dead",
+  "engines": {
+    "node": ">=8.9.0"
+  },
   "dependencies": {
-    "@babel/runtime": "^7.5.5",
-    "express": "^4.14.1",
-    "minecraft-data": "^2.39.0",
+    "@babel/runtime": "^7.6.3",
+    "express": "^4.17.1",
+    "minecraft-data": "^2.41.0",
     "prismarine-chunk": "^1.11.0",
     "prismarine-nbt": "^1.2.1",
     "prismarine-provider-anvil": "^2.1.0",
@@ -38,22 +43,24 @@
     "ws": "^2.0.2"
   },
   "devDependencies": {
-    "@babel/cli": "^7.5.5",
-    "@babel/core": "^7.5.5",
-    "@babel/node": "^7.5.5",
-    "@babel/plugin-transform-runtime": "^7.5.5",
-    "@babel/preset-env": "^7.5.5",
-    "@babel/preset-react": "^7.0.0",
-    "@babel/register": "^7.5.5",
-    "jest": "^24.8.0",
+    "@babel/cli": "^7.6.4",
+    "@babel/core": "^7.6.4",
+    "@babel/node": "^7.6.3",
+    "@babel/plugin-proposal-object-rest-spread": "^7.6.2",
+    "@babel/plugin-transform-runtime": "^7.6.2",
+    "@babel/preset-env": "^7.6.3",
+    "@babel/preset-react": "^7.6.3",
+    "@babel/register": "^7.6.2",
+    "babel-loader": "^8.0.6",
+    "jest": "^24.9.0",
     "jquery": "^3.4.1",
     "mock-socket": "^6.1.0",
     "npm-watch": "^0.2.0",
-    "socket.io-client": "^2.0.3",
+    "socket.io-client": "^2.3.0",
     "three": "^0.86.0",
-    "webpack": "^2.7.0",
-    "webpack-cli": "^3.3.6",
-    "webpack-dev-middleware": "^1.11.0",
-    "webpack-dev-server": "^3.8.0"
+    "webpack": "^4.41.2",
+    "webpack-cli": "^3.3.9",
+    "webpack-dev-middleware": "^3.7.2",
+    "webpack-dev-server": "^3.9.0"
   }
 }
