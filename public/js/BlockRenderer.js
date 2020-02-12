@@ -1,4 +1,3 @@
-import $ from "jquery";
 import * as THREE from "three";
 
 import { Textures } from "./Textures";
@@ -51,27 +50,22 @@ export { BlockRenderer }
 
 let modelDataCache = {};
 
-function loadModelData(modelName) {
-	// TODO change this to cache the promise function, ATM we are making multiple requests to the same file.
-
+async function loadModelData(modelName) {
 	if (modelDataCache.hasOwnProperty(modelName)) {
 		return modelDataCache[modelName];
 	}
 
-	let request = $.getJSON('/models/' + modelName + '.json').then(function (modelData) {
-		if (modelData.parent) {
-			return loadModelData(modelData.parent).then(function (parentModel) {
-				let combinedModelData = $.extend(true, {}, parentModel, modelData);
-				return combinedModelData;
-			});
-		}
-		else {
-			return modelData;
-		}
-	});
-	modelDataCache[modelName] = request;
-
-	return request;
+	const request = await fetch('/models/' + modelName + '.json');
+	const modelData = await request.json();
+	if (modelData.parent) {
+		const parentModel = await loadModelData(modelData.parent);
+		modelDataCache[modelName] = {...parentModel, ...modelData};
+		return modelDataCache[modelName];
+	}
+	else {
+		modelDataCache[modelName] = modelData;
+		return modelData;
+	}
 }
 
 function getFaceData(modelData) {

@@ -2,8 +2,6 @@
  * Created by ian-wallis on 26/02/2017.
  */
 
-import $ from "jquery";
-
 function MetaFields (stateName, variantName) {
 	return {
 		stateName: stateName,
@@ -25,29 +23,30 @@ let BlockState = {
 		return stateData;
 	},
 
-	loadBlockStates: function(block) {
-		let {stateName, variantName} = BlockState.getState(block);
+	loadBlockStates: async function(block) {
+		let {name, stateName, variantName} = BlockState.getState(block);
 
-		let path = '/blockstates/' + stateName + '.json';
+		let blockStateResponse;
 		if (!blockStateCache[stateName]) {
-			blockStateCache[stateName] = $.getJSON(path).catch(function(){
-				let otherPath = '/blockstates/' + block.name + '.json';
-				return $.getJSON(otherPath)
-			});
+			try {
+				blockStateResponse = await fetch(`/blockstates/${stateName}.json`);
+			}
+			catch (error) {
+				blockStateResponse = await fetch(`/blockstates/${name}.json`);
+			}
 		}
+		const stateData = blockStateCache[stateName] = blockStateResponse.json();
 
-		return blockStateCache[stateName].then(stateData => {
-			if (stateData.variants && stateData.variants[variantName]) {
-				let variant = stateData.variants[variantName];
-				if (Array.isArray(variant)) {
-					variant = variant[0];
-				}
-				return variant;
+		if (stateData.variants && stateData.variants[variantName]) {
+			let variant = stateData.variants[variantName];
+			if (Array.isArray(variant)) {
+				variant = variant[0];
 			}
-			else {
-				throw new Error('UNSUPPORTED: variant data missing.', stateData);
-			}
-		});
+			return variant;
+		}
+		else {
+			throw new Error('UNSUPPORTED: variant data missing.', stateData);
+		}
 	},
 
 	byName: function(block, variantName) {
