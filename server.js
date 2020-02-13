@@ -28,6 +28,7 @@ class MapDataServer {
 		this.initWebServer();
 		this.initMapServer();
 
+		this.versionString = '';
 		this.dataService = null;
 		this.mapInstance = null;
 		this.yMax = 255; // sane default, overwritten by initMapServer
@@ -50,6 +51,10 @@ class MapDataServer {
 		const self = this;
 		ioServer.on('connection', client => {
 			console.info('connected');
+			client.on('requestMinecraftVersion', () => {
+				return self.onMapVersionRequest(client);
+			})
+
 			client.on('blockRequest', (requestData) => {
 				console.info('block request: ', requestData);
 				return self.onBlockRequest(client, requestData);
@@ -65,19 +70,19 @@ class MapDataServer {
 		});
 	}
 
-	initMapServer() {
+	async initMapServer() {
 		const regionPath = path.join(this.mapDir, 'region');
 
-		this.getMapMetaData(this.mapDir).then(metaData => {
-			this.metaData = metaData;
-			const versionString = metaData.value.Data.value.Version.value.Name.value;
-			console.info('map version: ', versionString);
-			const World = worldFactory(versionString);
-			this.dataService = mcDataFactory(versionString);
+		try {
+			this.metaData = await this.getMapMetaData(this.mapDir)
+			console.info('map version: ', this.metaData.value.Data.value.Version.value.Name.value);
+			this.versionString = this.metaData.value.Data.value.Version.value.Name.value;
+			const World = worldFactory(this.versionString);
+			this.dataService = mcDataFactory(this.versionString);
 			this.mapInstance = new World(null, regionPath);
-		}).catch((err) => {
+		} catch(err) {
 			console.error(err);
-		});
+		};
 	}
 
 	getMapMetaData(mapDir) {
@@ -112,6 +117,12 @@ class MapDataServer {
 				});
 			});
 		});
+	}
+
+	onMapVersionRequest(client) {
+		const self = this;
+		console.info('Version Request', this.versionString);
+		client.emit('mcVersion', this.versionString);
 	}
 
 	onBlockRequest(client, requestData) {

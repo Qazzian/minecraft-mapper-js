@@ -1,11 +1,9 @@
 const serverUrl = 'http://localhost:4001';
-const region = require('../../../server/region');
-
-// import { region } from '../../../server/region';
 
 class QazzianMapServer {
 	constructor(ioInterface, eventHandlers) {
 		this.requests = {};
+		this.eventHandlers = {...eventHandlers};
 
 		let socket = this.socket = ioInterface(serverUrl);
 		socket.on('connect', function () {
@@ -14,21 +12,41 @@ class QazzianMapServer {
 		socket.on('disconnect', function () {
 			console.log('Map server connection lost');
 		});
+		socket.on('mcVersion', (data) => {
+			console.info('MC VERSION: ', data);
+			this.eventHandlers.onVersionReceived(data);
+		});
+
 		socket.on('blockData', function (data) {
 			eventHandlers.onBlockReceived(data);
 		});
 		socket.on('blockList', function (data) {
 			data.forEach(eventHandlers.onBlockReceived);
 		});
-		socket.on('chunkData', function (data) {
+		socket.on('chunkData', (data) => {
 			const chunkNbt = data;
 			console.info('Chunk data: ', chunkNbt);
-			eventHandlers.processChunk(chunkNbt);
+			this.eventHandlers.onChunkReceived(chunkNbt);
+			this.eventHandlers.onChunkReceived = eventHandlers.onChunkReceived;
 		});
 	}
 
+	getMcVersion() {
+		return new Promise((resolve, reject) => {
+			this.eventHandlers.onVersionReceived = resolve;
+			this.socket.emit('requestMinecraftVersion');
+		})
+	}
+
 	requestChunk(x, z) {
-		this.socket.emit('requestChunk', {x, z});
+		return new Promise((resolve, reject) => {
+			this.eventHandlers.onChunkReceived = resolve;
+			this.socket.emit('requestChunk', {x, z});
+		});
+	}
+
+	processChunk(chunkNbt) {
+		return {};
 	}
 
 	requestArea(x1, x2, z1, z2) {

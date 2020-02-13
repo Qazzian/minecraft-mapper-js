@@ -1,5 +1,6 @@
 import * as THREE from "three";
 import io from 'socket.io-client';
+import mcData from 'minecraft-data';
 
 import { SceneRenderer } from "./SceneRenderer";
 import { BlockRenderer } from "./BlockRenderer";
@@ -36,6 +37,8 @@ class Mapper {
 		this.sceneRenderer = new SceneRenderer();
 		this.scene = this.sceneRenderer.scene;
 
+		// todo mcData
+		this.mcData = null;
 		this.blockRenderer = new BlockRenderer();
 
 		this.meshByMaterial = {};
@@ -86,17 +89,22 @@ class Mapper {
 		this.sceneRenderer.positionCamera(cameraPos, targetPos);
 	}
 
-	requestMapData() {
+	async requestMapData() {
 		let dist = this.dist;
 
 		let x = this.origin[0] || 0,
 			z = this.origin[2] || 0;
 
+		debugger;
 		// this.mapInterface.requestArea(x-dist, x+dist, z-dist, z+dist);
-		this.mapInterface.requestChunk(x, z);
+		console.info('Request mc version');
+		const mcVersion = await this.mapInterface.getMcVersion();
+		this.mcData = mcData(mcVersion);
+		console.info('mcVersion', this.mcData);
+		const chunk1 = await this.mapInterface.requestChunk(x, z);
+		this.processChunk(chunk1);
 	}
 
-// TODO use a webWorker to process the block data queue and add elements to the scene
 	addBlockData(blockData) {
 		console.info('addBlockData: ', blockData);
 		this.blockRenderer.render(blockData).then(modelData => {
