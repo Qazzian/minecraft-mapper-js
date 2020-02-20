@@ -15,6 +15,7 @@ const mcDataFactory = require("minecraft-data");
 const Vec3 = require('vec3');
 
 const Map = require('./server/map');
+const mcDataHandler = require('./server/mcDataHandler');
 
 // const maxLevelHeight = mcData.type === 'pe' ? 128 : 255;
 
@@ -67,6 +68,10 @@ class MapDataServer {
 				console.info('Area request: ', requestData);
 				return self.onAreaRequest(client, requestData);
 			});
+			client.on('mcData', (requestData) => {
+				console.info('mcData request:', requestData);
+				return this.onMcDataRequest(client, requestData)
+			})
 		});
 	}
 
@@ -206,6 +211,14 @@ class MapDataServer {
 			}
 		}
 		console.info('Loops done: ', x, z);
+	}
+
+	onMcDataRequest(client, requestData) {
+		const data = mcDataHandler(this.dataService, requestData);
+		client.emit('mcData', {
+			request: requestData,
+			response: data,
+		});
 	}
 
 	has3dPosition(data) {
