@@ -1,0 +1,1339 @@
+
+> minecraft-mapper@1.0.0 server /home/ian/mine/minecraft-mapper-js
+> node server.js
+
+listening on port 4001
+metaData:  {
+    "type": "compound",
+    "name": "",
+    "value": {
+        "Data": {
+            "type": "compound",
+            "value": {
+                "RandomSeed": {
+                    "type": "long",
+                    "value": [
+                        -1362063762,
+                        -1769981183
+                    ]
+                },
+                "generatorName": {
+                    "type": "string",
+                    "value": "default"
+                },
+                "BorderCenterZ": {
+                    "type": "double",
+                    "value": 0
+                },
+                "Difficulty": {
+                    "type": "byte",
+                    "value": 2
+                },
+                "BorderSizeLerpTime": {
+                    "type": "long",
+                    "value": [
+                        0,
+                        0
+                    ]
+                },
+                "raining": {
+                    "type": "byte",
+                    "value": 0
+                },
+                "DimensionData": {
+                    "type": "compound",
+                    "value": {
+                        "1": {
+                            "type": "compound",
+                            "value": {
+                                "DragonFight": {
+                                    "type": "compound",
+                                    "value": {
+                                        "Gateways": {
+                                            "type": "list",
+                                            "value": {
+                                                "type": "int",
+                                                "value": [
+                                                    19,
+                                                    10,
+                                                    5,
+                                                    4,
+                                                    1,
+                                                    8,
+                                                    9,
+                                                    15,
+                                                    17,
+                                                    6,
+                                                    2,
+                                                    7,
+                                                    11,
+                                                    18,
+                                                    3,
+                                                    12,
+                                                    13,
+                                                    0,
+                                                    14,
+                                                    16
+                                                ]
+                                            }
+                                        },
+                                        "DragonKilled": {
+                                            "type": "byte",
+                                            "value": 1
+                                        },
+                                        "PreviouslyKilled": {
+                                            "type": "byte",
+                                            "value": 1
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "Time": {
+                    "type": "long",
+                    "value": [
+                        0,
+                        245673
+                    ]
+                },
+                "GameType": {
+                    "type": "int",
+                    "value": 0
+                },
+                "MapFeatures": {
+                    "type": "byte",
+                    "value": 1
+                },
+                "BorderCenterX": {
+                    "type": "double",
+                    "value": 0
+                },
+                "BorderDamagePerBlock": {
+                    "type": "double",
+                    "value": 0.2
+                },
+                "BorderWarningBlocks": {
+                    "type": "double",
+                    "value": 5
+                },
+                "BorderSizeLerpTarget": {
+                    "type": "double",
+                    "value": 60000000
+                },
+                "Version": {
+                    "type": "compound",
+                    "value": {
+                        "Snapshot": {
+                            "type": "byte",
+                            "value": 0
+                        },
+                        "Id": {
+                            "type": "int",
+                            "value": 1631
+                        },
+                        "Name": {
+                            "type": "string",
+                            "value": "1.13.2"
+                        }
+                    }
+                },
+                "DayTime": {
+                    "type": "long",
+                    "value": [
+                        0,
+                        280581
+                    ]
+                },
+                "initialized": {
+                    "type": "byte",
+                    "value": 1
+                },
+                "allowCommands": {
+                    "type": "byte",
+                    "value": 0
+                },
+                "SizeOnDisk": {
+                    "type": "long",
+                    "value": [
+                        0,
+                        0
+                    ]
+                },
+                "CustomBossEvents": {
+                    "type": "compound",
+                    "value": {}
+                },
+                "GameRules": {
+                    "type": "compound",
+                    "value": {
+                        "doTileDrops": {
+                            "type": "string",
+                            "value": "true"
+                        },
+                        "doFireTick": {
+                            "type": "string",
+                            "value": "true"
+                        },
+                        "maxCommandChainLength": {
+                            "type": "string",
+                            "value": "65536"
+                        },
+                        "reducedDebugInfo": {
+                            "type": "string",
+                            "value": "false"
+                        },
+                        "naturalRegeneration": {
+                            "type": "string",
+                            "value": "true"
+                        },
+                        "disableElytraMovementCheck": {
+                            "type": "string",
+                            "value": "false"
+                        },
+                        "doMobLoot": {
+                            "type": "string",
+                            "value": "true"
+                        },
+                        "announceAdvancements": {
+                            "type": "string",
+                            "value": "true"
+                        },
+                        "keepInventory": {
+                            "type": "string",
+                            "value": "false"
+                        },
+                        "doEntityDrops": {
+                            "type": "string",
+                            "value": "true"
+                        },
+                        "doLimitedCrafting": {
+                            "type": "string",
+                            "value": "false"
+                        },
+                        "mobGriefing": {
+                            "type": "string",
+                            "value": "true"
+                        },
+                        "randomTickSpeed": {
+                            "type": "string",
+                            "value": "3"
+                        },
+                        "commandBlockOutput": {
+                            "type": "string",
+                            "value": "true"
+                        },
+                        "spawnRadius": {
+                            "type": "string",
+                            "value": "10"
+                        },
+                        "doMobSpawning": {
+                            "type": "string",
+                            "value": "true"
+                        },
+                        "maxEntityCramming": {
+                            "type": "string",
+                            "value": "24"
+                        },
+                        "logAdminCommands": {
+                            "type": "string",
+                            "value": "true"
+                        },
+                        "spectatorsGenerateChunks": {
+                            "type": "string",
+                            "value": "true"
+                        },
+                        "doWeatherCycle": {
+                            "type": "string",
+                            "value": "true"
+                        },
+                        "sendCommandFeedback": {
+                            "type": "string",
+                            "value": "true"
+                        },
+                        "doDaylightCycle": {
+                            "type": "string",
+                            "value": "true"
+                        },
+                        "showDeathMessages": {
+                            "type": "string",
+                            "value": "true"
+                        }
+                    }
+                },
+                "Player": {
+                    "type": "compound",
+                    "value": {
+                        "HurtByTimestamp": {
+                            "type": "int",
+                            "value": 193313
+                        },
+                        "SleepTimer": {
+                            "type": "short",
+                            "value": 0
+                        },
+                        "SpawnForced": {
+                            "type": "byte",
+                            "value": 0
+                        },
+                        "Attributes": {
+                            "type": "list",
+                            "value": {
+                                "type": "compound",
+                                "value": [
+                                    {
+                                        "Base": {
+                                            "type": "double",
+                                            "value": 20
+                                        },
+                                        "Name": {
+                                            "type": "string",
+                                            "value": "generic.maxHealth"
+                                        }
+                                    },
+                                    {
+                                        "Base": {
+                                            "type": "double",
+                                            "value": 0
+                                        },
+                                        "Name": {
+                                            "type": "string",
+                                            "value": "generic.knockbackResistance"
+                                        }
+                                    },
+                                    {
+                                        "Base": {
+                                            "type": "double",
+                                            "value": 0.10000000149011612
+                                        },
+                                        "Name": {
+                                            "type": "string",
+                                            "value": "generic.movementSpeed"
+                                        }
+                                    },
+                                    {
+                                        "Base": {
+                                            "type": "double",
+                                            "value": 0
+                                        },
+                                        "Name": {
+                                            "type": "string",
+                                            "value": "generic.armor"
+                                        }
+                                    },
+                                    {
+                                        "Base": {
+                                            "type": "double",
+                                            "value": 0
+                                        },
+                                        "Name": {
+                                            "type": "string",
+                                            "value": "generic.armorToughness"
+                                        }
+                                    },
+                                    {
+                                        "Base": {
+                                            "type": "double",
+                                            "value": 1
+                                        },
+                                        "Name": {
+                                            "type": "string",
+                                            "value": "generic.attackDamage"
+                                        }
+                                    },
+                                    {
+                                        "Base": {
+                                            "type": "double",
+                                            "value": 4
+                                        },
+                                        "Name": {
+                                            "type": "string",
+                                            "value": "generic.attackSpeed"
+                                        }
+                                    },
+                                    {
+                                        "Base": {
+                                            "type": "double",
+                                            "value": 0
+                                        },
+                                        "Name": {
+                                            "type": "string",
+                                            "value": "generic.luck"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        "Invulnerable": {
+                            "type": "byte",
+                            "value": 0
+                        },
+                        "FallFlying": {
+                            "type": "byte",
+                            "value": 0
+                        },
+                        "PortalCooldown": {
+                            "type": "int",
+                            "value": 0
+                        },
+                        "AbsorptionAmount": {
+                            "type": "float",
+                            "value": 0
+                        },
+                        "abilities": {
+                            "type": "compound",
+                            "value": {
+                                "invulnerable": {
+                                    "type": "byte",
+                                    "value": 0
+                                },
+                                "mayfly": {
+                                    "type": "byte",
+                                    "value": 0
+                                },
+                                "instabuild": {
+                                    "type": "byte",
+                                    "value": 0
+                                },
+                                "walkSpeed": {
+                                    "type": "float",
+                                    "value": 0.10000000149011612
+                                },
+                                "mayBuild": {
+                                    "type": "byte",
+                                    "value": 1
+                                },
+                                "flying": {
+                                    "type": "byte",
+                                    "value": 0
+                                },
+                                "flySpeed": {
+                                    "type": "float",
+                                    "value": 0.05000000074505806
+                                }
+                            }
+                        },
+                        "FallDistance": {
+                            "type": "float",
+                            "value": 0
+                        },
+                        "recipeBook": {
+                            "type": "compound",
+                            "value": {
+                                "recipes": {
+                                    "type": "list",
+                                    "value": {
+                                        "type": "string",
+                                        "value": [
+                                            "minecraft:piston",
+                                            "minecraft:yellow_wool",
+                                            "minecraft:yellow_dye_from_dandelion",
+                                            "minecraft:charcoal",
+                                            "minecraft:item_frame",
+                                            "minecraft:white_banner",
+                                            "minecraft:gold_ingot",
+                                            "minecraft:red_wool",
+                                            "minecraft:stone_pickaxe",
+                                            "minecraft:glass_pane",
+                                            "minecraft:diamond_leggings",
+                                            "minecraft:wooden_axe",
+                                            "minecraft:dark_oak_boat",
+                                            "minecraft:cyan_stained_glass_pane",
+                                            "minecraft:arrow",
+                                            "minecraft:golden_sword",
+                                            "minecraft:oak_fence_gate",
+                                            "minecraft:iron_nugget",
+                                            "minecraft:white_carpet",
+                                            "minecraft:purple_stained_glass",
+                                            "minecraft:birch_fence",
+                                            "minecraft:red_stained_glass",
+                                            "minecraft:golden_pickaxe",
+                                            "minecraft:ladder",
+                                            "minecraft:tripwire_hook",
+                                            "minecraft:hopper",
+                                            "minecraft:redstone_torch",
+                                            "minecraft:red_bed_from_white_bed",
+                                            "minecraft:cobblestone_wall",
+                                            "minecraft:gray_stained_glass_pane",
+                                            "minecraft:magenta_wool",
+                                            "minecraft:gray_dye",
+                                            "minecraft:lime_stained_glass_pane",
+                                            "minecraft:white_concrete_powder",
+                                            "minecraft:gray_wool",
+                                            "minecraft:green_wool",
+                                            "minecraft:magenta_stained_glass",
+                                            "minecraft:gold_nugget",
+                                            "minecraft:iron_bars",
+                                            "minecraft:beetroot_soup",
+                                            "minecraft:andesite",
+                                            "minecraft:diamond_boots",
+                                            "minecraft:coal_block",
+                                            "minecraft:iron_trapdoor",
+                                            "minecraft:cyan_bed_from_white_bed",
+                                            "minecraft:cake",
+                                            "minecraft:black_wool",
+                                            "minecraft:iron_helmet",
+                                            "minecraft:diamond_axe",
+                                            "minecraft:stick",
+                                            "minecraft:leather_chestplate",
+                                            "minecraft:leather_boots",
+                                            "minecraft:lime_bed_from_white_bed",
+                                            "minecraft:iron_block",
+                                            "minecraft:polished_diorite",
+                                            "minecraft:cooked_porkchop",
+                                            "minecraft:pink_stained_glass_pane",
+                                            "minecraft:lime_concrete_powder",
+                                            "minecraft:leather_leggings",
+                                            "minecraft:birch_wood",
+                                            "minecraft:stone_axe",
+                                            "minecraft:leather_helmet",
+                                            "minecraft:oak_wood",
+                                            "minecraft:golden_apple",
+                                            "minecraft:diamond_pickaxe",
+                                            "minecraft:stone",
+                                            "minecraft:magenta_stained_glass_pane",
+                                            "minecraft:lime_wool",
+                                            "minecraft:purple_bed_from_white_bed",
+                                            "minecraft:light_gray_wool",
+                                            "minecraft:purple_wool",
+                                            "minecraft:iron_sword",
+                                            "minecraft:yellow_stained_glass",
+                                            "minecraft:green_stained_glass",
+                                            "minecraft:light_blue_stained_glass",
+                                            "minecraft:book",
+                                            "minecraft:light_gray_dye_from_ink_bonemeal",
+                                            "minecraft:wooden_shovel",
+                                            "minecraft:baked_potato",
+                                            "minecraft:orange_stained_glass",
+                                            "minecraft:pink_concrete_powder",
+                                            "minecraft:heavy_weighted_pressure_plate",
+                                            "minecraft:stone_shovel",
+                                            "minecraft:cobblestone_stairs",
+                                            "minecraft:pink_stained_glass",
+                                            "minecraft:golden_leggings",
+                                            "minecraft:magenta_concrete_powder",
+                                            "minecraft:diamond_shovel",
+                                            "minecraft:birch_trapdoor",
+                                            "minecraft:brown_bed_from_white_bed",
+                                            "minecraft:brown_stained_glass_pane",
+                                            "minecraft:sandstone_slab",
+                                            "minecraft:hay_block",
+                                            "minecraft:dropper",
+                                            "minecraft:yellow_bed_from_white_bed",
+                                            "minecraft:yellow_stained_glass_pane",
+                                            "minecraft:golden_boots",
+                                            "minecraft:iron_axe",
+                                            "minecraft:cyan_wool",
+                                            "minecraft:cobblestone_slab",
+                                            "minecraft:sandstone_stairs",
+                                            "minecraft:jukebox",
+                                            "minecraft:white_bed",
+                                            "minecraft:birch_slab",
+                                            "minecraft:cyan_concrete_powder",
+                                            "minecraft:golden_helmet",
+                                            "minecraft:minecart",
+                                            "minecraft:coarse_dirt",
+                                            "minecraft:oak_boat",
+                                            "minecraft:golden_hoe",
+                                            "minecraft:redstone",
+                                            "minecraft:bread",
+                                            "minecraft:chest",
+                                            "minecraft:gray_stained_glass",
+                                            "minecraft:wooden_pickaxe",
+                                            "minecraft:fermented_spider_eye",
+                                            "minecraft:torch",
+                                            "minecraft:acacia_boat",
+                                            "minecraft:stone_hoe",
+                                            "minecraft:diamond_sword",
+                                            "minecraft:jungle_boat",
+                                            "minecraft:diamond_hoe",
+                                            "minecraft:green_concrete_powder",
+                                            "minecraft:lever",
+                                            "minecraft:oak_stairs",
+                                            "minecraft:light_weighted_pressure_plate",
+                                            "minecraft:golden_shovel",
+                                            "minecraft:brown_stained_glass",
+                                            "minecraft:map",
+                                            "minecraft:glass_bottle",
+                                            "minecraft:iron_door",
+                                            "minecraft:purple_stained_glass_pane",
+                                            "minecraft:polished_granite",
+                                            "minecraft:shield",
+                                            "minecraft:cooked_beef",
+                                            "minecraft:sandstone",
+                                            "minecraft:yellow_concrete_powder",
+                                            "minecraft:blue_stained_glass_pane",
+                                            "minecraft:blue_bed_from_white_bed",
+                                            "minecraft:red_concrete_powder",
+                                            "minecraft:painting",
+                                            "minecraft:iron_shovel",
+                                            "minecraft:sign",
+                                            "minecraft:glass",
+                                            "minecraft:crafting_table",
+                                            "minecraft:pink_wool",
+                                            "minecraft:fishing_rod",
+                                            "minecraft:blue_concrete_powder",
+                                            "minecraft:iron_leggings",
+                                            "minecraft:blue_stained_glass",
+                                            "minecraft:oak_fence",
+                                            "minecraft:light_blue_wool",
+                                            "minecraft:iron_boots",
+                                            "minecraft:orange_wool",
+                                            "minecraft:black_bed_from_white_bed",
+                                            "minecraft:diamond_chestplate",
+                                            "minecraft:golden_chestplate",
+                                            "minecraft:gray_concrete_powder",
+                                            "minecraft:iron_nugget_from_smelting",
+                                            "minecraft:light_blue_concrete_powder",
+                                            "minecraft:birch_door",
+                                            "minecraft:light_gray_concrete_powder",
+                                            "minecraft:furnace",
+                                            "minecraft:magenta_bed_from_white_bed",
+                                            "minecraft:gray_bed_from_white_bed",
+                                            "minecraft:oak_trapdoor",
+                                            "minecraft:mushroom_stew",
+                                            "minecraft:birch_pressure_plate",
+                                            "minecraft:oak_door",
+                                            "minecraft:red_dye_from_beetroot",
+                                            "minecraft:tnt",
+                                            "minecraft:birch_button",
+                                            "minecraft:oak_planks",
+                                            "minecraft:wooden_sword",
+                                            "minecraft:flint_and_steel",
+                                            "minecraft:birch_fence_gate",
+                                            "minecraft:bone_meal",
+                                            "minecraft:pink_bed_from_white_bed",
+                                            "minecraft:iron_ingot",
+                                            "minecraft:light_gray_dye_from_azure_bluet",
+                                            "minecraft:black_stained_glass_pane",
+                                            "minecraft:carrot_on_a_stick",
+                                            "minecraft:red_stained_glass_pane",
+                                            "minecraft:iron_chestplate",
+                                            "minecraft:brown_wool",
+                                            "minecraft:iron_pickaxe",
+                                            "minecraft:bowl",
+                                            "minecraft:cut_sandstone",
+                                            "minecraft:birch_stairs",
+                                            "minecraft:green_stained_glass_pane",
+                                            "minecraft:green_bed_from_white_bed",
+                                            "minecraft:black_concrete_powder",
+                                            "minecraft:purple_concrete_powder",
+                                            "minecraft:white_wool_from_string",
+                                            "minecraft:light_gray_stained_glass",
+                                            "minecraft:birch_planks",
+                                            "minecraft:white_stained_glass_pane",
+                                            "minecraft:golden_axe",
+                                            "minecraft:light_gray_stained_glass_pane",
+                                            "minecraft:light_blue_stained_glass_pane",
+                                            "minecraft:white_stained_glass",
+                                            "minecraft:oak_button",
+                                            "minecraft:brown_concrete_powder",
+                                            "minecraft:birch_boat",
+                                            "minecraft:spruce_boat",
+                                            "minecraft:wooden_hoe",
+                                            "minecraft:orange_concrete_powder",
+                                            "minecraft:redstone_block",
+                                            "minecraft:shears",
+                                            "minecraft:cyan_stained_glass",
+                                            "minecraft:wheat",
+                                            "minecraft:oak_pressure_plate",
+                                            "minecraft:stone_sword",
+                                            "minecraft:paper",
+                                            "minecraft:orange_stained_glass_pane",
+                                            "minecraft:light_gray_bed_from_white_bed",
+                                            "minecraft:oak_slab",
+                                            "minecraft:orange_bed_from_white_bed",
+                                            "minecraft:lime_stained_glass",
+                                            "minecraft:blue_wool",
+                                            "minecraft:diamond_helmet",
+                                            "minecraft:iron_hoe",
+                                            "minecraft:light_blue_bed_from_white_bed",
+                                            "minecraft:note_block",
+                                            "minecraft:iron_ingot_from_iron_block",
+                                            "minecraft:pink_dye_from_peony",
+                                            "minecraft:bow",
+                                            "minecraft:coal",
+                                            "minecraft:sugar",
+                                            "minecraft:bucket",
+                                            "minecraft:clock",
+                                            "minecraft:polished_andesite",
+                                            "minecraft:compass",
+                                            "minecraft:black_stained_glass"
+                                        ]
+                                    }
+                                },
+                                "isFilteringCraftable": {
+                                    "type": "byte",
+                                    "value": 1
+                                },
+                                "toBeDisplayed": {
+                                    "type": "list",
+                                    "value": {
+                                        "type": "string",
+                                        "value": [
+                                            "minecraft:cake",
+                                            "minecraft:cooked_beef",
+                                            "minecraft:mushroom_stew"
+                                        ]
+                                    }
+                                },
+                                "isFurnaceGuiOpen": {
+                                    "type": "byte",
+                                    "value": 1
+                                },
+                                "isGuiOpen": {
+                                    "type": "byte",
+                                    "value": 1
+                                },
+                                "isFurnaceFilteringCraftable": {
+                                    "type": "byte",
+                                    "value": 0
+                                }
+                            }
+                        },
+                        "DeathTime": {
+                            "type": "short",
+                            "value": 0
+                        },
+                        "XpSeed": {
+                            "type": "int",
+                            "value": 0
+                        },
+                        "XpTotal": {
+                            "type": "int",
+                            "value": 542
+                        },
+                        "playerGameType": {
+                            "type": "int",
+                            "value": 0
+                        },
+                        "seenCredits": {
+                            "type": "byte",
+                            "value": 0
+                        },
+                        "Motion": {
+                            "type": "list",
+                            "value": {
+                                "type": "double",
+                                "value": [
+                                    0,
+                                    -0.0784000015258789,
+                                    0
+                                ]
+                            }
+                        },
+                        "SpawnY": {
+                            "type": "int",
+                            "value": 64
+                        },
+                        "UUIDLeast": {
+                            "type": "long",
+                            "value": [
+                                -1972939620,
+                                1304755311
+                            ]
+                        },
+                        "Health": {
+                            "type": "float",
+                            "value": 11.425334930419922
+                        },
+                        "SpawnZ": {
+                            "type": "int",
+                            "value": 241
+                        },
+                        "foodSaturationLevel": {
+                            "type": "float",
+                            "value": 0
+                        },
+                        "SpawnX": {
+                            "type": "int",
+                            "value": 74
+                        },
+                        "Air": {
+                            "type": "short",
+                            "value": 300
+                        },
+                        "OnGround": {
+                            "type": "byte",
+                            "value": 1
+                        },
+                        "Dimension": {
+                            "type": "int",
+                            "value": 0
+                        },
+                        "Rotation": {
+                            "type": "list",
+                            "value": {
+                                "type": "float",
+                                "value": [
+                                    -181.37591552734375,
+                                    8.907398223876953
+                                ]
+                            }
+                        },
+                        "XpLevel": {
+                            "type": "int",
+                            "value": 19
+                        },
+                        "Score": {
+                            "type": "int",
+                            "value": 542
+                        },
+                        "UUIDMost": {
+                            "type": "long",
+                            "value": [
+                                -1915683307,
+                                55199117
+                            ]
+                        },
+                        "Sleeping": {
+                            "type": "byte",
+                            "value": 0
+                        },
+                        "Pos": {
+                            "type": "list",
+                            "value": {
+                                "type": "double",
+                                "value": [
+                                    73.73289720035532,
+                                    64,
+                                    239.5995438287325
+                                ]
+                            }
+                        },
+                        "Fire": {
+                            "type": "short",
+                            "value": -20
+                        },
+                        "XpP": {
+                            "type": "float",
+                            "value": 0.859649121761322
+                        },
+                        "EnderItems": {
+                            "type": "list",
+                            "value": {
+                                "type": "end",
+                                "value": []
+                            }
+                        },
+                        "DataVersion": {
+                            "type": "int",
+                            "value": 1631
+                        },
+                        "foodLevel": {
+                            "type": "int",
+                            "value": 12
+                        },
+                        "foodExhaustionLevel": {
+                            "type": "float",
+                            "value": 0.5645482540130615
+                        },
+                        "HurtTime": {
+                            "type": "short",
+                            "value": 0
+                        },
+                        "SelectedItemSlot": {
+                            "type": "int",
+                            "value": 1
+                        },
+                        "Inventory": {
+                            "type": "list",
+                            "value": {
+                                "type": "compound",
+                                "value": [
+                                    {
+                                        "Slot": {
+                                            "type": "byte",
+                                            "value": 0
+                                        },
+                                        "id": {
+                                            "type": "string",
+                                            "value": "minecraft:brown_mushroom"
+                                        },
+                                        "Count": {
+                                            "type": "byte",
+                                            "value": 1
+                                        }
+                                    },
+                                    {
+                                        "Slot": {
+                                            "type": "byte",
+                                            "value": 1
+                                        },
+                                        "id": {
+                                            "type": "string",
+                                            "value": "minecraft:stone_pickaxe"
+                                        },
+                                        "Count": {
+                                            "type": "byte",
+                                            "value": 1
+                                        },
+                                        "tag": {
+                                            "type": "compound",
+                                            "value": {
+                                                "Damage": {
+                                                    "type": "int",
+                                                    "value": 1
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "Slot": {
+                                            "type": "byte",
+                                            "value": 2
+                                        },
+                                        "id": {
+                                            "type": "string",
+                                            "value": "minecraft:stone_axe"
+                                        },
+                                        "Count": {
+                                            "type": "byte",
+                                            "value": 1
+                                        },
+                                        "tag": {
+                                            "type": "compound",
+                                            "value": {
+                                                "Damage": {
+                                                    "type": "int",
+                                                    "value": 43
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "Slot": {
+                                            "type": "byte",
+                                            "value": 3
+                                        },
+                                        "id": {
+                                            "type": "string",
+                                            "value": "minecraft:stone_shovel"
+                                        },
+                                        "Count": {
+                                            "type": "byte",
+                                            "value": 1
+                                        },
+                                        "tag": {
+                                            "type": "compound",
+                                            "value": {
+                                                "Damage": {
+                                                    "type": "int",
+                                                    "value": 37
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "Slot": {
+                                            "type": "byte",
+                                            "value": 4
+                                        },
+                                        "id": {
+                                            "type": "string",
+                                            "value": "minecraft:stone_hoe"
+                                        },
+                                        "Count": {
+                                            "type": "byte",
+                                            "value": 1
+                                        },
+                                        "tag": {
+                                            "type": "compound",
+                                            "value": {
+                                                "Damage": {
+                                                    "type": "int",
+                                                    "value": 69
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "Slot": {
+                                            "type": "byte",
+                                            "value": 9
+                                        },
+                                        "id": {
+                                            "type": "string",
+                                            "value": "minecraft:gunpowder"
+                                        },
+                                        "Count": {
+                                            "type": "byte",
+                                            "value": 1
+                                        }
+                                    },
+                                    {
+                                        "Slot": {
+                                            "type": "byte",
+                                            "value": 10
+                                        },
+                                        "id": {
+                                            "type": "string",
+                                            "value": "minecraft:sugar_cane"
+                                        },
+                                        "Count": {
+                                            "type": "byte",
+                                            "value": 24
+                                        }
+                                    },
+                                    {
+                                        "Slot": {
+                                            "type": "byte",
+                                            "value": 11
+                                        },
+                                        "id": {
+                                            "type": "string",
+                                            "value": "minecraft:dirt"
+                                        },
+                                        "Count": {
+                                            "type": "byte",
+                                            "value": 30
+                                        }
+                                    },
+                                    {
+                                        "Slot": {
+                                            "type": "byte",
+                                            "value": 12
+                                        },
+                                        "id": {
+                                            "type": "string",
+                                            "value": "minecraft:leather"
+                                        },
+                                        "Count": {
+                                            "type": "byte",
+                                            "value": 1
+                                        }
+                                    },
+                                    {
+                                        "Slot": {
+                                            "type": "byte",
+                                            "value": 13
+                                        },
+                                        "id": {
+                                            "type": "string",
+                                            "value": "minecraft:string"
+                                        },
+                                        "Count": {
+                                            "type": "byte",
+                                            "value": 1
+                                        }
+                                    },
+                                    {
+                                        "Slot": {
+                                            "type": "byte",
+                                            "value": 14
+                                        },
+                                        "id": {
+                                            "type": "string",
+                                            "value": "minecraft:oak_planks"
+                                        },
+                                        "Count": {
+                                            "type": "byte",
+                                            "value": 64
+                                        }
+                                    },
+                                    {
+                                        "Slot": {
+                                            "type": "byte",
+                                            "value": 15
+                                        },
+                                        "id": {
+                                            "type": "string",
+                                            "value": "minecraft:oak_planks"
+                                        },
+                                        "Count": {
+                                            "type": "byte",
+                                            "value": 40
+                                        }
+                                    },
+                                    {
+                                        "Slot": {
+                                            "type": "byte",
+                                            "value": 19
+                                        },
+                                        "id": {
+                                            "type": "string",
+                                            "value": "minecraft:beetroot"
+                                        },
+                                        "Count": {
+                                            "type": "byte",
+                                            "value": 5
+                                        }
+                                    },
+                                    {
+                                        "Slot": {
+                                            "type": "byte",
+                                            "value": 24
+                                        },
+                                        "id": {
+                                            "type": "string",
+                                            "value": "minecraft:cobblestone_stairs"
+                                        },
+                                        "Count": {
+                                            "type": "byte",
+                                            "value": 14
+                                        }
+                                    },
+                                    {
+                                        "Slot": {
+                                            "type": "byte",
+                                            "value": 27
+                                        },
+                                        "id": {
+                                            "type": "string",
+                                            "value": "minecraft:iron_sword"
+                                        },
+                                        "Count": {
+                                            "type": "byte",
+                                            "value": 1
+                                        },
+                                        "tag": {
+                                            "type": "compound",
+                                            "value": {
+                                                "Damage": {
+                                                    "type": "int",
+                                                    "value": 22
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "Slot": {
+                                            "type": "byte",
+                                            "value": 28
+                                        },
+                                        "id": {
+                                            "type": "string",
+                                            "value": "minecraft:iron_pickaxe"
+                                        },
+                                        "Count": {
+                                            "type": "byte",
+                                            "value": 1
+                                        },
+                                        "tag": {
+                                            "type": "compound",
+                                            "value": {
+                                                "Damage": {
+                                                    "type": "int",
+                                                    "value": 76
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "Slot": {
+                                            "type": "byte",
+                                            "value": 32
+                                        },
+                                        "id": {
+                                            "type": "string",
+                                            "value": "minecraft:gravel"
+                                        },
+                                        "Count": {
+                                            "type": "byte",
+                                            "value": 33
+                                        }
+                                    },
+                                    {
+                                        "Slot": {
+                                            "type": "byte",
+                                            "value": 33
+                                        },
+                                        "id": {
+                                            "type": "string",
+                                            "value": "minecraft:cobblestone"
+                                        },
+                                        "Count": {
+                                            "type": "byte",
+                                            "value": 48
+                                        }
+                                    },
+                                    {
+                                        "Slot": {
+                                            "type": "byte",
+                                            "value": 35
+                                        },
+                                        "id": {
+                                            "type": "string",
+                                            "value": "minecraft:bread"
+                                        },
+                                        "Count": {
+                                            "type": "byte",
+                                            "value": 6
+                                        }
+                                    },
+                                    {
+                                        "Slot": {
+                                            "type": "byte",
+                                            "value": 100
+                                        },
+                                        "id": {
+                                            "type": "string",
+                                            "value": "minecraft:iron_boots"
+                                        },
+                                        "Count": {
+                                            "type": "byte",
+                                            "value": 1
+                                        },
+                                        "tag": {
+                                            "type": "compound",
+                                            "value": {
+                                                "Damage": {
+                                                    "type": "int",
+                                                    "value": 10
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "Slot": {
+                                            "type": "byte",
+                                            "value": 101
+                                        },
+                                        "id": {
+                                            "type": "string",
+                                            "value": "minecraft:iron_leggings"
+                                        },
+                                        "Count": {
+                                            "type": "byte",
+                                            "value": 1
+                                        },
+                                        "tag": {
+                                            "type": "compound",
+                                            "value": {
+                                                "Damage": {
+                                                    "type": "int",
+                                                    "value": 2
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "Slot": {
+                                            "type": "byte",
+                                            "value": 102
+                                        },
+                                        "id": {
+                                            "type": "string",
+                                            "value": "minecraft:iron_chestplate"
+                                        },
+                                        "Count": {
+                                            "type": "byte",
+                                            "value": 1
+                                        },
+                                        "tag": {
+                                            "type": "compound",
+                                            "value": {
+                                                "Damage": {
+                                                    "type": "int",
+                                                    "value": 2
+                                                }
+                                            }
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        "foodTickTimer": {
+                            "type": "int",
+                            "value": 0
+                        }
+                    }
+                },
+                "SpawnY": {
+                    "type": "int",
+                    "value": 64
+                },
+                "rainTime": {
+                    "type": "int",
+                    "value": 133552
+                },
+                "thunderTime": {
+                    "type": "int",
+                    "value": 66873
+                },
+                "SpawnZ": {
+                    "type": "int",
+                    "value": 208
+                },
+                "hardcore": {
+                    "type": "byte",
+                    "value": 0
+                },
+                "DifficultyLocked": {
+                    "type": "byte",
+                    "value": 0
+                },
+                "SpawnX": {
+                    "type": "int",
+                    "value": 64
+                },
+                "clearWeatherTime": {
+                    "type": "int",
+                    "value": 0
+                },
+                "thundering": {
+                    "type": "byte",
+                    "value": 0
+                },
+                "generatorVersion": {
+                    "type": "int",
+                    "value": 1
+                },
+                "version": {
+                    "type": "int",
+                    "value": 19133
+                },
+                "BorderSafeZone": {
+                    "type": "double",
+                    "value": 5
+                },
+                "LastPlayed": {
+                    "type": "long",
+                    "value": [
+                        360,
+                        379836440
+                    ]
+                },
+                "BorderWarningTime": {
+                    "type": "double",
+                    "value": 15
+                },
+                "LevelName": {
+                    "type": "string",
+                    "value": "Qazzian1"
+                },
+                "BorderSize": {
+                    "type": "double",
+                    "value": 60000000
+                },
+                "DataVersion": {
+                    "type": "int",
+                    "value": 1631
+                },
+                "DataPacks": {
+                    "type": "compound",
+                    "value": {
+                        "Enabled": {
+                            "type": "list",
+                            "value": {
+                                "type": "string",
+                                "value": [
+                                    "vanilla"
+                                ]
+                            }
+                        },
+                        "Disabled": {
+                            "type": "list",
+                            "value": {
+                                "type": "end",
+                                "value": []
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+map version:  1.13.2

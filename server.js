@@ -54,15 +54,15 @@ class MapDataServer {
 			console.info('connected');
 			client.on('requestMinecraftVersion', () => {
 				return self.onMapVersionRequest(client);
-			})
+			});
 
 			client.on('blockRequest', (requestData) => {
 				console.info('block request: ', requestData);
 				return self.onBlockRequest(client, requestData);
 			});
-			client.on('requestChunk', (req) => {
-				console.info('Chunk Request: ', req);
-				return this.onChunkRequest(client, req);
+			client.on('requestChunk', (requestData) => {
+				console.info('Chunk Request: ', requestData);
+				return this.onChunkRequest(client, requestData);
 			});
 			client.on('requestArea', (requestData) => {
 				console.info('Area request: ', requestData);
@@ -87,7 +87,7 @@ class MapDataServer {
 			this.mapInstance = new World(null, regionPath);
 		} catch(err) {
 			console.error(err);
-		};
+		}
 	}
 
 	getMapMetaData(mapDir) {
@@ -214,11 +214,22 @@ class MapDataServer {
 	}
 
 	onMcDataRequest(client, requestData) {
-		const data = mcDataHandler(this.dataService, requestData);
-		client.emit('mcData', {
-			request: requestData,
-			response: data,
-		});
+		try {
+			const data = mcDataHandler(this.dataService, requestData);
+			client.emit('mcData', {
+				request: requestData,
+				response: data,
+			});
+		} catch (error) {
+			console.error(error);
+			client.emit('mcData', {
+				request: requestData,
+				response: null,
+				error,
+			});
+		}
+
+
 	}
 
 	has3dPosition(data) {

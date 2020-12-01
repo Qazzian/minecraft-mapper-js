@@ -1,8 +1,8 @@
 import * as THREE from "three";
 import io from 'socket.io-client';
-import mcData from 'minecraft-data';
 
 import { SceneRenderer } from "./SceneRenderer";
+import BlockDataCache from "./BlockDataCache";
 import { BlockRenderer } from "./BlockRenderer";
 import { QazzianMapServer } from "./mapInterfaces/QazzianMapServer";
 import chunk from "../../common/chunk";
@@ -13,13 +13,14 @@ import chunk from "../../common/chunk";
 // X is left - right, west - east
 // Y is up - down
 // Z is forward and back, north & south
+// Which matches Minecraft :)
 
 // Sea level: Y=64
 
 console.log('THREE.REVISION: ', THREE.REVISION);
 THREE.Cache.enabled = true;
 
-const debugMode = false;
+const debugMode = true;
 
 class Mapper {
 	constructor() {
@@ -27,7 +28,7 @@ class Mapper {
 		// this.origin = [10, 100, 360];
 		this.origin = [0, 60, 0];
 		// How far to render the map from the origin
-		this.dist = 10;
+		this.dist = 1;
 		this.camOffset = [-10, 10, 10];
 
 		this.mapInterface = new QazzianMapServer(io, {
@@ -37,8 +38,8 @@ class Mapper {
 		this.sceneRenderer = new SceneRenderer();
 		this.scene = this.sceneRenderer.scene;
 
-		// todo mcData
-		this.mcData = null;
+		this.blockDataCache = new BlockDataCache();
+
 		this.blockRenderer = new BlockRenderer();
 
 		this.meshByMaterial = {};
@@ -95,12 +96,7 @@ class Mapper {
 		let x = this.origin[0] || 0,
 			z = this.origin[2] || 0;
 
-		debugger;
 		// this.mapInterface.requestArea(x-dist, x+dist, z-dist, z+dist);
-		console.info('Request mc version');
-		const mcVersion = await this.mapInterface.getMcVersion();
-		this.mcData = mcData(mcVersion);
-		console.info('mcVersion', this.mcData);
 		const chunk1 = await this.mapInterface.requestChunk(x, z);
 		this.processChunk(chunk1);
 	}
@@ -114,7 +110,37 @@ class Mapper {
 		});
 	}
 
-	processChunk(chunkNbt) {
+	async processChunk(chunkNbt) {
+		console.info('Chunk data: ', chunkNbt);
+
+		const chunkPos = chunk.getPosition(chunkNbt);
+		const sections = chunk.getSectionList(chunkNbt);
+		if (!sections.length) {
+			return;
+		}
+
+		const sectionIndex = sections.length - 1;
+		const topSection = sections[sectionIndex];
+		console.info('Top Section: ', topSection);
+		const sectionYPos = chunk.getSectionYPos(topSection);
+		const blockIter = chunk.iterSectionBlocks(topSection);
+		let next = blockIter.next();
+		while(!next.done) {
+
+			const block = next.value;
+			block.chunkPos = chunk.sectionCoordsToChunkCoords(block.sectionPos, sectionIndex);
+			block.pos = chunk.getWorldPosForBlock(block.chunkPos, chunkPos);
+			block.mcData = await this.blockDataCache.get(block.name, (blockName) => {return this.mapInterface.requestBlockData(blockName)});
+			debugger;
+			// TODO need to get getMcVersion and fill the block with relevant render data
+			// TODO make the data request over socket
+			this.addBlockData(block);
+			next = blockIter.next();
+		}
+
+		console.info('First block in section:', nextBlock);
+		debugger;
+
 
 	}
 

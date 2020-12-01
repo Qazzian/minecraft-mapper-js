@@ -29,6 +29,11 @@ class QazzianMapServer {
 			this.eventHandlers.onChunkReceived(chunkNbt);
 			this.eventHandlers.onChunkReceived = eventHandlers.onChunkReceived;
 		});
+
+		socket.on('mcData', (data) => {
+			// todo deal with error
+			this.eventHandlers.onMcDataReceived(data.response);
+		});
 	}
 
 	getMcVersion() {
@@ -44,19 +49,22 @@ class QazzianMapServer {
 			this.socket.emit('requestChunk', {x, z});
 		});
 	}
+	//
+	// requestArea(x1, x2, z1, z2) {
+	// 	return;
+	// 	console.info('requestArea: ', arguments);
+	// 	this.socket.emit('requestArea', {
+	// 		north: z1,
+	// 		south: z2,
+	// 		west: x1,
+	// 		east: x2
+	// 	});
+	// }
 
-	processChunk(chunkNbt) {
-		return {};
-	}
-
-	requestArea(x1, x2, z1, z2) {
-		return;
-		console.info('requestArea: ', arguments);
-		this.socket.emit('requestArea', {
-			north: z1,
-			south: z2,
-			west: x1,
-			east: x2
+	requestBlockData(blockName) {
+		return new Promise((resolve, reject) => {
+			this.eventHandlers.onMcDataReceived = resolve;
+			this.socket.emit('mcData', {blockName});
 		});
 	}
 

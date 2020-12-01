@@ -1,5 +1,9 @@
 const path = require('path');
+
 require("@babel/register");
+
+const { CleanWebpackPlugin } = require('clean-webpack-plugin');
+const HtmlWebpackPlugin = require('html-webpack-plugin');
 
 const config = {
 	entry: './public/js/mapper.js',
@@ -12,18 +16,31 @@ const config = {
 		rules: [
 			{
 				test: [
-					/(common|public)\/.*\.js/
+					/(common|public)\/.*\.js$/
 				],
 				use: ['babel-loader'],
 			},
+			// {
+			// 	test: /\.json$/,
+			// 	loader: 'json-loader'
+			// },
 			{
 				test: /\.css$/,
 				use: ['style-loader', 'css-loader'],
 			}
 		],
 	},
+	devServer: {
+		contentBase: './public'
+	},
 
-	plugins: [],
+	plugins: [
+		new CleanWebpackPlugin(),
+		new HtmlWebpackPlugin({
+			template: './public/index.html',
+			filename: 'index.html'
+		})
+	],
 	watch: true,
 	devtool: "source-map",
 

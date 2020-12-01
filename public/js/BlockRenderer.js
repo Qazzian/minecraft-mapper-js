@@ -10,9 +10,10 @@ class BlockRenderer {
 	}
 
 	render (blockData) {
+		console.info('Rendering block:', blockData);
 
 		const self = this;
-		let block = blockData.block;
+		let block = blockData.mcData;
 		let biome = block.biome;
 		let blockModel,
 			blockFaces,

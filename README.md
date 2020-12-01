@@ -24,7 +24,7 @@ npm install
 Copy your Minecraft map folder into minecraft-mapper-js/map.  
 Map locations depend on which OS you run Minecraft on.
 
-* Windows: 'C:\Users\your username\appdata\roaming\.minecraft\saves' by going to run and entering '%appdata%'
+* Windows: `C:\Users\[your username]\appdata\roaming\.minecraft\saves` 
 * Mac OS X: Go to the "Go" menu in the Finder, click "Go to folder", and type '~/Library/Application Support/minecraft/saves'
 * Linux: Many repositories install Minecraft in the $HOME directory, '~/.minecraft/saves',
 

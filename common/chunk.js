@@ -104,7 +104,6 @@ const chunk = {
 	},
 
 	getSectionYPos(sectionNbt) {
-		debugger;
 		return 0;
 	},
 
@@ -121,7 +120,6 @@ const chunk = {
 	},
 
 	getProps(blockNbt) {
-		debugger;
 		if (!blockNbt.Properties) {
 			return {};
 		}
